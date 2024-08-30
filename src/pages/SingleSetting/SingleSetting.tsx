@@ -13,8 +13,8 @@ export default function Single({ }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false); // 유저 닉네임 짓는 모달창 오픈 여부
     const [isInitialBet, setIsInitialBet] = useState(true); // 초기 베팅 여부
     const [numberOfUser, setNumberOfUser] = useState(2); // 참여하는 유저 수
-    const [asset, setAsset] = useState(5000); // 초기 금액
-    const [initialBet, setInitialBet] = useState(50); // 참여하는 유저 수
+    const [initialScore, setInitialScore] = useState(5000); // 초기 금액
+    const [initialBet, setInitialBet] = useState(50); // 초기 베팅 금액
 
     const navigate = useNavigate();
 
@@ -78,7 +78,7 @@ export default function Single({ }: Props) {
                 ]}
             />
             <Button type="primary" onClick={()=>setIsModalOpen(true)}>Start</Button>
-            {isModalOpen && <SingleBeginModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} userCount={numberOfUser} />}
+            {isModalOpen && <SingleBeginModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} userCount={numberOfUser} initialBet={initialBet} initialScore={initialScore} />}
         </div>
     )
 }
