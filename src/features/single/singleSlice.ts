@@ -7,6 +7,8 @@ export const singleSlice = createSlice({
 		users: [], // 유저 객체의 배열
 		userCount: 0, // 유저 수
 		initialBet: 0, // 초기 베팅 필수 금액
+        round : 2, // 라운드 수
+        currentRoundTotalScore : 0, // 해당 라운드에 걸린 금액
 	},
 	reducers: {
 		// 유저 수 상태 업데이트
@@ -25,7 +27,18 @@ export const singleSlice = createSlice({
 		setUserTurnOrder: (state, action) => {
 			state.userTurnOrder = action.payload;
 		},
-		
+        // 라운드 수 늘리기
+        incrementRound : (state) => {
+			state.round += 1;
+		},
+        // 라운드에 걸린 금액 초기화
+        resetCurrentRoundTotalScore : (state)=>{
+            state.currentRoundTotalScore = 0;
+        },
+        // 라운드에 걸린 금액 더하기
+		incrementCurrentRoundTotalScore : (state,action) => {
+			state.currentRoundTotalScore += action.payload;
+		},
 	},
 });
 

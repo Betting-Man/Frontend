@@ -18,10 +18,6 @@ export default function Single({ }: Props) {
 
     const navigate = useNavigate();
 
-    const handleChange = (value: string) => {
-        console.log(`selected ${value}`);
-    };
-
     return (
         <div className='flex flex-col items-center'>
             <h1>number of users</h1>
@@ -43,7 +39,7 @@ export default function Single({ }: Props) {
             <Select
                 defaultValue='10000'
                 style={{ width: 120 }}
-                onChange={handleChange}
+                onChange={(value)=> setInitialScore(Number(value))}
                 options={[
                     { value: 5000, label: '5000' },
                     { value: 10000, label: '10000' },
@@ -62,7 +58,7 @@ export default function Single({ }: Props) {
             <Select
                 defaultValue='10000'
                 style={{ width: 120 }}
-                onChange={handleChange}
+                onChange={(value)=>setInitialBet(Number(value))}
                 disabled={isInitialBet}
                 options={[
                     { value: 5000, label: '5000' },

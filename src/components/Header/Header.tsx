@@ -1,17 +1,19 @@
-
-import React from 'react'
 import { useState } from "react";
 import {Button } from "antd";
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../app/store';
 
 type Props = {}
 
 export default function Header({ }: Props) {
-  const [roundCount, setRoundCount] = useState(1) // 라운드 수
+  // 라운드
+  const round = useSelector((state : RootState) => state.single.round);
+
   return (
     <div className="header flex justify-between p-3">
-      <button className='bg-white'>종료</button>
-      <h1>Round - {roundCount}</h1>
-      <button className='bg-white'>세팅</button>
+      <Button type="primary" >종료</Button>
+      <h1>Round - {round}</h1>
+      <Button type="primary">세팅</Button>
     </div>
   )
 }
