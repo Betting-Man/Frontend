@@ -5,7 +5,7 @@ type Props = {}
 
 export default function BetBoard({}: Props) {
   return (
-    <div className='bg-green-950 p-3 absolute bottom-0 w-96'>
+    <div className='bg-secondary p-3 absolute bottom-0 w-96'>
         <div className='flex'>
             <Button type="primary">100</Button>
             <Button type="primary">500</Button>

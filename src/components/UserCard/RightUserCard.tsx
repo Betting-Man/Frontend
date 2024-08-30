@@ -6,11 +6,12 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 type Props = {
+    isTurn : boolean;
 }
 
-export default function RightUserCard({ }: Props) {
+export default function RightUserCard({isTurn }: Props) {
     return (
-        <div className='flex items-center'>
+        <div className={`flex items-center p-2 ${isTurn ? 'bg-third rounded-md' : ''}`}>
             <div>
                 <p>Round Score</p>
                 <p>전에 한 행동</p>
@@ -21,5 +22,5 @@ export default function RightUserCard({ }: Props) {
                 <p>UserScore</p>
             </div>
         </div>
-    )
+    );
 }
