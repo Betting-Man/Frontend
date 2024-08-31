@@ -1,8 +1,7 @@
 import { Select, Checkbox, Button, Modal, Input } from "antd";
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import LeftUserNameInput from "../../components/UserNameInput/LeftUserNameInput";
-import RightUserNameInput from "../../components/UserNameInput/RightUserNameInput";
+import RightUserNameInput from "../../components/UserNameInput/UserNameInput";
 import useUserposition from "../../hooks/useUserPostition";
 import SingleBeginModal from "../../components/SingleBeginModal/SingleBeginModal";
 

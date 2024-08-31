@@ -1,7 +1,6 @@
 
 import React from 'react'
-import LeftUserCard from "../UserCard/LeftUserCard";
-import RightUserCard from "../UserCard/RightUserCard";
+import UserCard from "../UserCard/UserCard";
 
 type Props = {}
 
@@ -11,13 +10,13 @@ export default function UserTable({ }: Props) {
     return (
         <div className='p-3 flex'>
             <div id='leftUser' className='flex flex-col w-1/2 gap-4'>
-                <LeftUserCard isTurn={false}/>
-                <LeftUserCard isTurn={false}/>
-                <LeftUserCard isTurn={false}/>
+                <UserCard isTurn={false} isLeft={true}/>
+                <UserCard isTurn={false} isLeft={true}/>
+                <UserCard isTurn={false} isLeft={true}/>
             </div>
             <div id='rightUser' className='flex flex-col w-1/2 gap-4'>
-                <RightUserCard isTurn={true} />
-                <RightUserCard isTurn={false}/>
+                <UserCard isTurn={true}  isLeft={false}/>
+                <UserCard isTurn={false}  isLeft={false}/>
             </div>
         </div>
     )
