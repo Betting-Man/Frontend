@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import useUserposition from "../../hooks/useUserPostition";
 import UserNameInput from "../UserNameInput/UserNameInput";
 import { useSelector, useDispatch } from 'react-redux';
-import { setUserCount, setUsers, setInitialBet } from "../../features/single/singleSlice";
+import { setUserCount, setUsers, setInitialBet, setUserTurnOrder } from "../../features/single/singleSlice";
 import { RootState } from "../../app/store";
 import { User } from "../../features/single/singleSlice";
 
@@ -38,10 +38,12 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
                 isTurn : false,
                 currentRoundBet : 0,
                 currentRoundBehavior : '',
+                isDie : false
             })
         })
 
         dispatch(setUsers(userObjects)) // 유저 객체 업데이트
+        dispatch(setUserTurnOrder()); // 턴 정하기
         navigate('/single/1'); // 특정 roomId로 수정 필요 ////////////////////////////////////////
     }
 

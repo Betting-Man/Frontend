@@ -6,14 +6,13 @@ import React from 'react';
 import { User } from '../../features/single/singleSlice';
 
 type Props = {
-    isTurn: boolean,
     isLeft : boolean,
     user : User
 }
 
-export default function UserCard({ isTurn,isLeft,user }: Props) {
+export default function UserCard({isLeft,user }: Props) {
     return (
-        <div className={`flex items-center p-2 ${isTurn ? 'bg-third rounded-md' : ''}`}>
+        <div className={`flex items-center p-2 ${user.isTurn ? 'bg-third rounded-md' : ''}`}>
             {!isLeft && <div>
                 <p>{user.currentRoundBet}</p>
                 <p>{user.currentRoundBehavior}</p>

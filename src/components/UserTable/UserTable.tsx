@@ -12,12 +12,12 @@ export default function UserTable({ }: Props) {
         <div className='p-3 flex'>
             <div id='leftUser' className='flex flex-col w-1/2 gap-4'>
                 {users.map((user, index) => (
-                    index % 2 === 0 && <UserCard key={index} isTurn={false} isLeft={true} user={user}/>
+                    index % 2 === 0 && <UserCard key={index} isLeft={true} user={user}/>
                 ))}
             </div>
             <div id='rightUser' className='flex flex-col w-1/2 gap-4'>
             {users.map((user, index) => (
-                    index % 2 === 1 && <UserCard key={index} isTurn={false} isLeft={false}user={user}/>
+                    index % 2 === 1 && <UserCard key={index} isLeft={false}user={user}/>
                 ))}
             </div>
         </div>
