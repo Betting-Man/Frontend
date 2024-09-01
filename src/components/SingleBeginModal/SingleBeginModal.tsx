@@ -6,6 +6,7 @@ import UserNameInput from "../UserNameInput/UserNameInput";
 import { useSelector, useDispatch } from 'react-redux';
 import { setUserCount, setUsers, setInitialBet } from "../../features/single/singleSlice";
 import { RootState } from "../../app/store";
+import { User } from "../../features/single/singleSlice";
 
 type Props = {
     isModalOpen: boolean,
@@ -15,28 +16,33 @@ type Props = {
     initialScore: number,
 }
 
-type User = {
-    name: string,
-    initialScore: number,
-    currentScore: number,
-}
-
 export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCount, initialBet, initialScore }: Props) {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
     // const { leftArray, rightArray } = useUserposition(userCount);
     const leftUsers: number = Math.ceil(userCount / 2);
     const rightUsers: number = Math.floor(userCount / 2);
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
     const userNames = useSelector((state : RootState) => state.single.userNames)
 
     const handleOk = () => {
-        navigate('/single/1'); // 특정 roomId로 수정 필요 ////////////////////////////////////////
         dispatch(setInitialBet(initialBet)) // 초기 베팅 금액 상태 업데이트
         // 유저 객체 배열 생성
         const userObjects: User[] = [];
-        
-       
+
+        userNames.forEach((name)=>{
+            userObjects.push({
+                name: name,
+                initialScore: initialScore,
+                currentScore: initialScore,
+                isTurn : false,
+                currentRoundBet : 0,
+                currentRoundBehavior : '',
+            })
+        })
+
         dispatch(setUsers(userObjects)) // 유저 객체 업데이트
+        navigate('/single/1'); // 특정 roomId로 수정 필요 ////////////////////////////////////////
     }
 
     return (

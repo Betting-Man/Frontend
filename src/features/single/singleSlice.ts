@@ -1,5 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+export type User = {
+    name: string,
+    initialScore: number,
+    currentScore: number,
+    isTurn : boolean,
+    currentRoundBet: number,
+    currentRoundBehavior : string
+}
+
 export const singleSlice = createSlice({
 	name: "single",
 	initialState: {
@@ -8,7 +17,7 @@ export const singleSlice = createSlice({
 		userNames: [] as string[],
 		userCount: 0, // 유저 수
 		initialBet: 0, // 초기 베팅 필수 금액
-		round: 2, // 라운드 수
+		round: 1, // 라운드 수
 		currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액
 	},
 	reducers: {
