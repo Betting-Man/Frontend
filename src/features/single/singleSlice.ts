@@ -175,8 +175,8 @@ export const singleSlice = createSlice({
 					currentUser.currentRoundBet +=
 						currentUser.currentRoundBehavior;
 
-					// 해당 유저의 이전 행동에 추가
-					currentUser.currentRoundBehavior = `Raise ${currentUser.currentRoundBehavior}`;
+					// // 해당 유저의 이전 행동에 추가
+					// currentUser.currentRoundBehavior = `Raise ${currentUser.currentRoundBehavior}`;
 
 					// 턴 넘기기
 					currentUser.isTurn=false;
@@ -223,12 +223,31 @@ export const singleSlice = createSlice({
                 }
             });
 
+			// 유저 턴 정보 배열(userTurnOrder) userTurnIndex에 맞춰서초기화
+			state.userTurnOrder=[]; // 배열 초기화
+			// index 승자 기준으로 초기화 => 승자 부터 라운드 시작
+			state.userTurnIndex=state.userTurnStandard.indexOf(selectedUserIndexes[0]); 
+			for (let i = 0; i < state.userTurnStandard.length ; i++) {
+				const value =state.userTurnStandard[(state.userTurnIndex + i) % state.userTurnStandard.length];
+				state.userTurnOrder.push(value); // 턴 다시 추가
+				state.users[value].isTurn=false; // 턴 내용 초기화
+				state.users[value].currentRoundBehavior=null; // 이전에 한 행동 초기화
+			}
+			// 첫번째 유저 턴 주기
+			state.users[state.userTurnOrder[0]].isTurn=true;
+
             // 라운드 점수 초기화
             state.currentRoundTotalScore = 0;
 		},
-		// 현재 턴 유저의 currentRoundBet 초기화
+		// 현재 턴 유저의 currentRoundBehavior 초기화
 		resetUserCurrentRoundBehavior: (state) => {
 			state.users[state.userTurnOrder[0]].currentRoundBehavior = 0;
+		},
+		// 모든 유저의 currentBehavior 초기화
+		resetAllUserCurrentRoundBehavior: (state) => {
+			state.users.forEach((user)=>{
+				user.currentRoundBehavior=null;
+			})
 		},
 		// 라운드 인당 콜 금액 초기화
 		resetRequiredCallScore: (state) => {
@@ -273,6 +292,7 @@ export const {
 	divideRoundScoreToWinner,
 	incrementUserCurrentRoundBehavior,
 	resetUserCurrentRoundBehavior,
+	resetAllUserCurrentRoundBehavior,
 	resetRequiredCallScore,
 	setInitialRoundSetting,
 	incrementRound,
