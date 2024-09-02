@@ -7,7 +7,7 @@ export type User = {
 	currentScore: number;
 	isTurn: boolean;
 	currentRoundBet: number;
-	currentRoundBehavior: string | number;
+	currentRoundBehavior: string | number | null;
 	isDie: boolean;
 };
 
@@ -35,7 +35,7 @@ const initialState: State = {
 	userCount: 0, // 유저 수
 	initialBet: 0, // 초기 베팅 필수 금액
 	round: 1, // 라운드 수
-	currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액a
+	currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액
 	requiredCallScore: 0, // 콜하기 위한 금액
 };
 
@@ -45,6 +45,18 @@ function turnOver(state: State) {
 	state.users[state.userTurnOrder[0]].isTurn = false;
 	// 현재 턴을 넘기기 위해 첫 번째 유저를 배열에서 제거
 	state.userTurnOrder.shift();
+	// userTurnOrder 비어있으면 추가
+	if(state.userTurnOrder.length === 0){
+		for (let i = 0; i < state.userTurnStandard.length ; i++) {
+			const value =state.userTurnStandard[(state.userTurnIndex + i) % state.userTurnStandard.length];
+			// 죽지 않은 사람만 추가
+			if(state.users[value].isDie===false){
+				state.userTurnOrder.push(value);
+				state.users[value].currentRoundBehavior=null;
+			}
+		}
+
+	}
 	// 그 다음 유저의 턴을 true로 설정합니다.
 	state.users[state.userTurnOrder[0]].isTurn = true;
 }
@@ -111,17 +123,18 @@ export const singleSlice = createSlice({
 			state.users[state.userTurnOrder[0]].isTurn = true;
 		},
 		// check나 call 했을 경우
-		CheckOrCall :(state)=>{
+		CheckOrCall: (state) => {
 			const currentUser = state.users[state.userTurnOrder[0]];
 			// check
-			if(currentUser.currentRoundBet === state.requiredCallScore){
-				currentUser.currentRoundBehavior = 'CHECK'
+			if (currentUser.currentRoundBet === state.requiredCallScore) {
+				currentUser.currentRoundBehavior = "CHECK";
 			}
 			// call
-			else{
-				state.currentRoundTotalScore += state.requiredCallScore - currentUser.currentRoundBet;
-				currentUser.currentRoundBet = state.requiredCallScore
-				currentUser.currentRoundBehavior = 'CALL'
+			else {
+				state.currentRoundTotalScore +=
+					state.requiredCallScore - currentUser.currentRoundBet;
+				currentUser.currentRoundBet = state.requiredCallScore;
+				currentUser.currentRoundBehavior = "CALL";
 			}
 			turnOver(state);
 		},
@@ -132,15 +145,28 @@ export const singleSlice = createSlice({
 			if (typeof currentUser.currentRoundBehavior === "number") {
 				// 금액이 해당 라운드 콜 금액을 넘기는지 확인
 				if (
-					state.requiredCallScore <
-					currentUser.currentRoundBehavior +
-						currentUser.currentRoundBet
+					state.requiredCallScore < currentUser.currentRoundBehavior + currentUser.currentRoundBet
 				) {
+					// 새로운 userTurnOrder에서 첫 번째 유저의 인덱스를 userTurnStandard를 기준으로 찾습니다.
+					state.userTurnIndex = state.userTurnStandard.indexOf(
+						state.userTurnOrder[0]
+					);
+
 					// 유저 턴 변경 및 인덱스 변경
-					// state.userTurnIndex += state.users.lenth
+					state.userTurnOrder = [];
+
+					// userTurnStandard에서 bet을 한 유저의 인덱스(userTurnIndex)를 기준으로 배열을 갱신합니다.
+					for (let i = 0; i < state.userTurnStandard.length - 1; i++) {
+						const value =
+							state.userTurnStandard[(state.userTurnIndex + i + 1) % state.userTurnStandard.length];
+						// 안죽은 사람만 추가
+						if(state.users[value].isDie===false){
+							state.userTurnOrder.push(value);
+						}
+					}
 
 					// 필요 콜 금액 변경
-					state.requiredCallScore = currentUser.currentRoundBehavior;
+					state.requiredCallScore = currentUser.currentRoundBehavior + currentUser.currentRoundBet;
 
 					// 해당 라운드 금액 추가
 					state.currentRoundTotalScore +=
@@ -154,7 +180,8 @@ export const singleSlice = createSlice({
 					currentUser.currentRoundBehavior = `Raise ${currentUser.currentRoundBehavior}`;
 
 					// 턴 넘기기
-					turnOver(state);
+					currentUser.isTurn=false;
+					state.users[state.userTurnOrder[0]].isTurn=true;
 				}
 			}
 		},
@@ -164,7 +191,7 @@ export const singleSlice = createSlice({
 			state.users[state.userTurnOrder[0]].currentRoundBehavior = "DIE";
 			turnOver(state);
 		},
-		// 현재 턴 유저의 currentRoundBet 추가
+		// 현재 턴 유저의 currentRoundBet 추가 - 100,500,1000 눌렀을 때
 		incrementUserCurrentRoundBehavior: (state, action) => {
 			state.users[state.userTurnOrder[0]].currentRoundBehavior +=
 				action.payload;
