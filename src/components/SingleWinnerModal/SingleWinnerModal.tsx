@@ -1,7 +1,7 @@
 import { Modal } from "antd";
 import React, { useState } from "react";
 import { useDispatch,useSelector } from 'react-redux';
-import { incrementRound,resetCurrentRoundTotalScore, resetRequiredCallScore,divideRoundScoreToWinner } from '../../features/single/singleSlice';
+import { incrementRound,resetCurrentRoundTotalScore, resetRequiredCallScore,divideRoundScoreToWinner, setInitialRoundSetting } from '../../features/single/singleSlice';
 import { RootState } from "../../app/store";
 import {
     faUser
@@ -20,7 +20,7 @@ export default function SingleWinnerModal({ isModalOpen,setIsModalOpen }: Props)
             dispatch(incrementRound()); // 라운드 수 증가
             dispatch(divideRoundScoreToWinner(selectedUserIndexes)); // 이긴 유저에 score 나눠주기
             dispatch(resetRequiredCallScore()); // requiredCallScore 초기화
-            // dispatch(resetCurrentRoundTotalScore()); // roundScore 초기화
+            dispatch(setInitialRoundSetting()); // inital Bet을 통해 round 시작전 세팅
         }
     };
 

@@ -1,5 +1,5 @@
 import { Select, Checkbox, Button, Modal, Input } from "antd";
-import { useState } from "react";
+import React,{ useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import RightUserNameInput from "../../components/UserNameInput/UserNameInput";
 import useUserposition from "../../hooks/useUserPostition";
@@ -10,12 +10,21 @@ type Props = {}
 
 export default function Single({ }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false); // 유저 닉네임 짓는 모달창 오픈 여부
-    const [isInitialBet, setIsInitialBet] = useState(true); // 초기 베팅 여부
+    const [isInitialBet, setIsInitialBet] = useState(false); // 초기 베팅 여부
     const [numberOfUser, setNumberOfUser] = useState(2); // 참여하는 유저 수
     const [initialScore, setInitialScore] = useState(5000); // 초기 금액
     const [initialBet, setInitialBet] = useState(50); // 초기 베팅 금액
 
     const navigate = useNavigate();
+
+    const initialBetOptions = Array.from({ length: 10 }, (_, index) => {
+        const value = 50 * (index + 1);
+        return { value, label: `${value}` };
+    });
+    const initialScoreOptions = Array.from({ length: 10 }, (_, index) => {
+        const value = 5000 * (index + 1);
+        return { value, label: `${value}` };
+    });
 
     return (
         <div className='flex flex-col items-center'>
@@ -39,38 +48,16 @@ export default function Single({ }: Props) {
                 defaultValue='10000'
                 style={{ width: 120 }}
                 onChange={(value)=> setInitialScore(Number(value))}
-                options={[
-                    { value: 5000, label: '5000' },
-                    { value: 10000, label: '10000' },
-                    { value: 15000, label: '15000' },
-                    { value: 20000, label: '20000' },
-                    { value: 25000, label: '25000' },
-                    { value: 30000, label: '30000' },
-                    { value: 35000, label: '35000' },
-                    { value: 40000, label: '40000' },
-                    { value: 45000, label: '45000' },
-                    { value: 50000, label: '50000' }
-                ]}
+                options={initialScoreOptions}
             />
             <h1>Initial Bet</h1>
-            <Checkbox onChange={() => setIsInitialBet(!isInitialBet)}>기본 베팅 사용</Checkbox>
+            <Checkbox onChange={() => setIsInitialBet(!isInitialBet)} checked={!isInitialBet}>기본 베팅 사용</Checkbox>
             <Select
-                defaultValue='10000'
+                defaultValue='50'
                 style={{ width: 120 }}
                 onChange={(value)=>setInitialBet(Number(value))}
                 disabled={isInitialBet}
-                options={[
-                    { value: 5000, label: '5000' },
-                    { value: 10000, label: '10000' },
-                    { value: 15000, label: '15000' },
-                    { value: 20000, label: '20000' },
-                    { value: 25000, label: '25000' },
-                    { value: 30000, label: '30000' },
-                    { value: 35000, label: '35000' },
-                    { value: 40000, label: '40000' },
-                    { value: 45000, label: '45000' },
-                    { value: 50000, label: '50000' }
-                ]}
+                options={initialBetOptions}
             />
             <Button type="primary" onClick={()=>setIsModalOpen(true)}>Start</Button>
             {isModalOpen && <SingleBeginModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} userCount={numberOfUser} initialBet={initialBet} initialScore={initialScore} />}

@@ -229,6 +229,17 @@ export const singleSlice = createSlice({
 		resetRequiredCallScore: (state) => {
 			state.requiredCallScore = 0;
 		},
+		// 라운드 시작할 때, 초기 금액 설정
+		setInitialRoundSetting : (state) =>{
+			const initialBet=state.initialBet;
+
+			state.users.forEach((user)=>{
+				user.currentRoundBet=initialBet;
+			})
+
+			state.currentRoundTotalScore=initialBet * state.users.length;
+			state.requiredCallScore=initialBet;
+		},
 		// 라운드 수 늘리기
 		incrementRound: (state) => {
 			state.round += 1;
@@ -258,6 +269,7 @@ export const {
 	incrementUserCurrentRoundBehavior,
 	resetUserCurrentRoundBehavior,
 	resetRequiredCallScore,
+	setInitialRoundSetting,
 	incrementRound,
 	resetCurrentRoundTotalScore,
 	incrementCurrentRoundTotalScore,
