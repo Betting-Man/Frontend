@@ -196,9 +196,38 @@ export const singleSlice = createSlice({
 			state.users[state.userTurnOrder[0]].currentRoundBehavior +=
 				action.payload;
 		},
+		// 배열에 있는 유저들에게 해당 라운드 금액 나눠주기
+		divideRoundScoreToWinner: (state,action) => {
+			const selectedUserIndexes = action.payload;
+            const totalScore = state.currentRoundTotalScore;
+
+            // 나누어 줄 수의 크기를 계산합니다.
+            const scoreToAdd = totalScore / selectedUserIndexes.length;
+
+            // 선택된 유저들에 대해서 점수를 나눠서 추가합니다.
+            selectedUserIndexes.forEach((index: number) => {
+                state.users[index].currentScore += (scoreToAdd-state.users[index].currentRoundBet);
+				state.users[index].currentRoundBet = 0;
+            });
+
+            // 선택되지 않은 유저들에 대해서 점수를 나눠서 뺍니다.
+            state.users.forEach((user, index) => {
+                if (!selectedUserIndexes.includes(index)) {
+                    user.currentScore -= user.currentRoundBet;
+					user.currentRoundBet=0;
+                }
+            });
+
+            // 라운드 점수 초기화
+            state.currentRoundTotalScore = 0;
+		},
 		// 현재 턴 유저의 currentRoundBet 초기화
 		resetUserCurrentRoundBehavior: (state) => {
 			state.users[state.userTurnOrder[0]].currentRoundBehavior = 0;
+		},
+		// 라운드 인당 콜 금액 초기화
+		resetRequiredCallScore: (state) => {
+			state.requiredCallScore = 0;
 		},
 		// 라운드 수 늘리기
 		incrementRound: (state) => {
@@ -225,8 +254,10 @@ export const {
 	CheckOrCall,
 	betScore,
 	dieUser,
+	divideRoundScoreToWinner,
 	incrementUserCurrentRoundBehavior,
 	resetUserCurrentRoundBehavior,
+	resetRequiredCallScore,
 	incrementRound,
 	resetCurrentRoundTotalScore,
 	incrementCurrentRoundTotalScore,
