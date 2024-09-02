@@ -1,7 +1,7 @@
 import { Button } from "antd";
 import React from "react";
 import { useDispatch } from "react-redux";
-import { dieUser, incrementUserCurrentRoundBehavior,resetUserCurrentRoundBehavior,betScore,CheckOrCall } from "../../features/single/singleSlice";
+import { dieUser, incrementUserCurrentRoundBehavior,resetUserCurrentRoundBehavior,betScore,CheckOrCall, AllIn } from "../../features/single/singleSlice";
 
 type Props = {}
 
@@ -32,7 +32,7 @@ export default function BetBoard({ }: Props) {
 
   // Check/Call 클릭했을 때
   const handleAllInClick = () => {
-    
+    dispatch(AllIn());
   }
 
   // Die 클릭했을 때
