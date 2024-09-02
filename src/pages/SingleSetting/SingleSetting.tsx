@@ -17,14 +17,17 @@ export default function Single({ }: Props) {
 
     const navigate = useNavigate();
 
-    const initialBetOptions = Array.from({ length: 10 }, (_, index) => {
-        const value = 50 * (index + 1);
-        return { value, label: `${value}` };
-    });
+    // 시작 금액 배열
     const initialScoreOptions = Array.from({ length: 10 }, (_, index) => {
         const value = 5000 * (index + 1);
         return { value, label: `${value}` };
     });
+    // 라운드 시작시마다 무조건 내는 금액 배열
+    const initialBetOptions = Array.from({ length: 10 }, (_, index) => {
+        const value = 50 * (index + 1);
+        return { value, label: `${value}` };
+    });
+    
 
     return (
         <div className='flex flex-col items-center'>
