@@ -37,7 +37,7 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
                 currentScore: initialScore,
                 isTurn : false,
                 currentRoundBet : 0,
-                currentRoundBehavior : '',
+                currentRoundBehavior : 0,
                 isDie : false
             })
         })

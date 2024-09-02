@@ -1,7 +1,7 @@
 import { Button } from "antd";
 import React from "react";
 import { useDispatch } from "react-redux";
-import { dieUser } from "../../features/single/singleSlice";
+import { dieUser, incrementUserCurrentRoundBehavior,resetUserCurrentRoundBehavior,betScore,CheckOrCall } from "../../features/single/singleSlice";
 
 type Props = {}
 
@@ -9,41 +9,43 @@ export default function BetBoard({ }: Props) {
   const dispatch = useDispatch();
 
   // 100, 500, 1000 클릭했을 때
-  const handleNumberClick = () =>{
+  const handleNumberClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const value = e.currentTarget.textContent;
+    dispatch(incrementUserCurrentRoundBehavior(Number(value)));
 
-  }
+  };
 
   // Bet 클릭했을 때
-  const handleBetClick = () =>{
-
+  const handleBetClick = () => {
+    dispatch(betScore());
   }
 
   // Cancel 클릭했을 때
-  const handleCancelClick = () =>{
-
+  const handleCancelClick = () => {
+    dispatch(resetUserCurrentRoundBehavior());
   }
 
   // Check/Call 클릭했을 때
-  const handleCallClick = () =>{
-
+  const handleCallClick = () => {
+    dispatch(CheckOrCall());
   }
 
-   // Die 클릭했을 때
-   const handleDieClick = () =>{
+  // Die 클릭했을 때
+  const handleDieClick = () => {
     dispatch(dieUser());
-   }
+  }
 
   return (
     <div className='bg-secondary px-3 py-6 absolute bottom-0 w-96'>
       <div className='flex justify-between '>
-        <Button type="primary">100</Button>
-        <Button type="primary">500</Button>
-        <Button type="primary">1000</Button>
-        <Button type="primary">BET</Button>
-        <Button type="primary">CANCEL</Button>
+        <Button type="primary" onClick={handleNumberClick}>100</Button>
+        <Button type="primary" onClick={handleNumberClick}>500</Button>
+        <Button type="primary" onClick={handleNumberClick}>1000</Button>
+        <Button type="primary" onClick={handleBetClick}>BET</Button>
+        <Button type="primary" onClick={handleCancelClick}>CANCEL</Button>
       </div>
       <div className='flex justify-around mt-6'>
-        <Button type="primary" >CHECK / CALL</Button>
+        <Button type="primary" onClick={handleCallClick}>CHECK / CALL</Button>
         <Button type="primary" onClick={handleDieClick}>DIE</Button>
       </div>
 
