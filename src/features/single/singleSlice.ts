@@ -55,7 +55,6 @@ function turnOver(state: State) {
 				state.users[value].currentRoundBehavior=null;
 			}
 		}
-
 	}
 	// 그 다음 유저의 턴을 true로 설정합니다.
 	state.users[state.userTurnOrder[0]].isTurn = true;
@@ -193,8 +192,14 @@ export const singleSlice = createSlice({
 		},
 		// 현재 턴 유저의 currentRoundBet 추가 - 100,500,1000 눌렀을 때
 		incrementUserCurrentRoundBehavior: (state, action) => {
-			state.users[state.userTurnOrder[0]].currentRoundBehavior +=
-				action.payload;
+			const user=state.users[state.userTurnOrder[0]];
+			const betScore = user.currentRoundBehavior + action.payload;
+			// 베팅한 금액이 유저가 가진 금액보다 많을 경우
+			if(betScore>user.currentScore){
+				user.currentRoundBehavior=user.currentScore;
+			} else{
+				user.currentRoundBehavior += action.payload;
+			}
 		},
 		// 배열에 있는 유저들에게 해당 라운드 금액 나눠주기
 		divideRoundScoreToWinner: (state,action) => {

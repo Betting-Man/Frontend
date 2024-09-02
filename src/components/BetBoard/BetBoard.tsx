@@ -30,6 +30,11 @@ export default function BetBoard({ }: Props) {
     dispatch(CheckOrCall());
   }
 
+  // Check/Call 클릭했을 때
+  const handleAllInClick = () => {
+    
+  }
+
   // Die 클릭했을 때
   const handleDieClick = () => {
     dispatch(dieUser());
@@ -46,6 +51,7 @@ export default function BetBoard({ }: Props) {
       </div>
       <div className='flex justify-around mt-6'>
         <Button type="primary" onClick={handleCallClick}>CHECK / CALL</Button>
+        <Button type="primary" onClick={handleAllInClick}>ALL-IN</Button>
         <Button type="primary" onClick={handleDieClick}>DIE</Button>
       </div>
 
