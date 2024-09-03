@@ -19,7 +19,7 @@ export default function Header({ }: Props) {
   return (
     <div className="header flex justify-between p-3">
       <Button type="primary" onClick={handleResultClick} >Result</Button>
-      <h1>Round - {round}</h1>
+      <h1 className="text-2xl text-white">Round - {round}</h1>
       <Button type="primary">세팅</Button>
       {isModalOpen && <SingleResultModal isModalOpen={true} setIsModalOpen={setIsModalOpen}/>}
     </div>

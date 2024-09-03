@@ -12,17 +12,16 @@ type Props = {
 
 export default function UserCard({ isLeft, user }: Props) {
     return (
-        <div className={`flex items-center p-2 ${user.isTurn ? 'bg-third rounded-md' : ''}`}>
+        <div className={`flex items-center p-2 ${user.isTurn ? 'bg-third rounded-md' : ''} gap-6` }>
             {!isLeft && (
-                <div>
-                    <p>{user.currentRoundBet}</p>
+                <div className={`${isLeft ? '' : 'ml-auto'} `}>
+                    <p className='text-white font-bold'>{user.currentRoundBet}</p>
                     {user.currentRoundBehavior !== 0 && (
-                        <p className={
-                            typeof user.currentRoundBehavior === 'string'
-                                ? user.currentRoundBehavior === 'DIE'
-                                    ? 'text-red-500'
-                                    : 'text-black'
-                                : 'text-blue-500'
+                        <p className={`font-bold ${typeof user.currentRoundBehavior === 'string'
+                            ? user.currentRoundBehavior === 'DIE'
+                                ? 'text-red-500'
+                                : 'text-black'
+                            : 'text-blue-500'}`
                         }>
                             {user.currentRoundBehavior}
                         </p>
@@ -31,19 +30,18 @@ export default function UserCard({ isLeft, user }: Props) {
             )}
             <div className='flex flex-col items-center'>
                 <FontAwesomeIcon icon={faUser} size='2xl' />
-                <p>{user.name}</p>
-                <p>{user.currentScore}</p>
+                <p className='text-white '>{user.name}</p>
+                <p className='text-white font-medium'>{user.currentScore}</p>
             </div>
             {isLeft && (
                 <div>
-                    <p>{user.currentRoundBet}</p>
+                    <p className='text-white font-bold'>{user.currentRoundBet}</p>
                     {user.currentRoundBehavior !== 0 && (
-                        <p className={
-                            typeof user.currentRoundBehavior === 'string'
-                                ? user.currentRoundBehavior === 'DIE'
-                                    ? 'text-red-500'
-                                    : 'text-black'
-                                : 'text-blue-500'
+                        <p className={`font-bold ${typeof user.currentRoundBehavior === 'string'
+                            ? user.currentRoundBehavior === 'DIE'
+                                ? 'text-red-500'
+                                : 'text-black'
+                            : 'text-blue-500'}`
                         }>
                             {user.currentRoundBehavior}
                         </p>

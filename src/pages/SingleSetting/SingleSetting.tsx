@@ -1,5 +1,5 @@
 import { Select, Checkbox, Button, Modal, Input } from "antd";
-import React,{ useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import RightUserNameInput from "../../components/UserNameInput/UserNameInput";
 import useUserposition from "../../hooks/useUserPostition";
@@ -27,43 +27,54 @@ export default function Single({ }: Props) {
         const value = 50 * (index + 1);
         return { value, label: `${value}` };
     });
-    
+
 
     return (
-        <div className='flex flex-col items-center'>
-            <h1>number of users</h1>
-            <Select
-                defaultValue='2'
-                style={{ width: 120 }}
-                onChange={(value) => setNumberOfUser(Number(value))}
-                options={[
-                    { value: 2, label: '2' },
-                    { value: 3, label: '3' },
-                    { value: 4, label: '4' },
-                    { value: 5, label: '5' },
-                    { value: 6, label: '6' },
-                    { value: 7, label: '7' },
-                    { value: 8, label: '8' },
-                ]}
-            />
-            <h1>total Score</h1>
-            <Select
-                defaultValue='10000'
-                style={{ width: 120 }}
-                onChange={(value)=> setInitialScore(Number(value))}
-                options={initialScoreOptions}
-            />
-            <h1>Initial Bet</h1>
-            <Checkbox onChange={() => setIsInitialBet(!isInitialBet)} checked={isInitialBet}>기본 베팅 사용</Checkbox>
-            <Select
-                defaultValue='50'
-                style={{ width: 120 }}
-                onChange={(value)=>setInitialBet(Number(value))}
-                disabled={!isInitialBet}
-                options={initialBetOptions}
-            />
-            <Button type="primary" onClick={()=>setIsModalOpen(true)}>Start</Button>
-            {isModalOpen && <SingleBeginModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} userCount={numberOfUser} initialBet={isInitialBet ? initialBet : 0 } initialScore={initialScore} />}
+        <div className='h-full flex items-center justify-center '>
+            <div className='flex flex-col items-center gap-4'>
+                <div className="flex flex-col items-center">
+                    <p className="text-3xl text-white  font-semibold">number of users</p>
+                    <Select
+                        defaultValue='2'
+                        style={{ width: 120 }}
+                        onChange={(value) => setNumberOfUser(Number(value))}
+                        options={[
+                            { value: 2, label: '2' },
+                            { value: 3, label: '3' },
+                            { value: 4, label: '4' },
+                            { value: 5, label: '5' },
+                            { value: 6, label: '6' },
+                            { value: 7, label: '7' },
+                            { value: 8, label: '8' },
+                        ]}
+                    />
+                </div>
+                <div className="flex flex-col items-center">
+                    <p className="text-3xl text-white font-semibold">total Score</p>
+                    <Select
+                        defaultValue='10000'
+                        style={{ width: 120 }}
+                        onChange={(value) => setInitialScore(Number(value))}
+                        options={initialScoreOptions}
+                    />
+                </div>
+                <div className="flex flex-col tems-center gap-1">
+                    <p className="text-3xl text-white font-semibold">Initial Bet</p>
+                    <Checkbox onChange={() => setIsInitialBet(!isInitialBet)} checked={isInitialBet} className="text-white">Use Initial Bet</Checkbox>
+                    <Select
+                        defaultValue='50'
+                        style={{ width: 120 }}
+                        onChange={(value) => setInitialBet(Number(value))}
+                        disabled={!isInitialBet}
+                        options={initialBetOptions}
+                    />
+                </div>
+
+
+                <Button type="primary" onClick={() => setIsModalOpen(true)}>Start</Button>
+                {isModalOpen && <SingleBeginModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} userCount={numberOfUser} initialBet={isInitialBet ? initialBet : 0} initialScore={initialScore} />}
+            </div>
         </div>
+
     )
 }
