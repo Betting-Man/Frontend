@@ -23,7 +23,7 @@ export type State = {
 	round: number; // 라운드 수
 	currentRoundTotalScore: number; // 해당 라운드에 걸린 금액
 	requiredCallScore: number; // 콜하기 위한 금액
-	hasDuplicateName : boolean; // 이름 중복 여부
+	hasDuplicateName: boolean; // 이름 중복 여부
 };
 
 // 초기 상태
@@ -38,7 +38,7 @@ const initialState: State = {
 	round: 1, // 라운드 수
 	currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액
 	requiredCallScore: 0, // 콜하기 위한 금액
-	hasDuplicateName : true, // 이름 중복 여부
+	hasDuplicateName: true, // 이름 중복 여부
 };
 
 // 헬퍼 함수: 턴 넘기기 로직
@@ -107,7 +107,7 @@ export const singleSlice = createSlice({
 		checkNameRedundancy: (state) => {
 			const nameSet = new Set();
 			let hasDuplicate = false;
-		
+
 			// userNames 배열을 순회하면서 중복된 이름이 있는지 확인
 			for (const name of state.userNames) {
 				if (nameSet.has(name)) {
@@ -116,12 +116,12 @@ export const singleSlice = createSlice({
 				}
 				nameSet.add(name);
 			}
-		
+
 			// 중복 여부를 상태에 저장 (필요한 경우)
 			state.hasDuplicateName = hasDuplicate;
 		},
 		// 유저 이름 중복 여부 false 로 바꾸기 -> Input 건들 경우
-		setNameRedundancy:(state)=>{
+		setNameRedundancy: (state) => {
 			state.hasDuplicateName = true;
 		},
 		// users 배열 시계방향에 맞게 턴에 추가
@@ -296,23 +296,25 @@ export const singleSlice = createSlice({
 			state,
 			action: { payload: number }
 		) => {
-			// 해당 유저
-			const user = state.users[state.userTurnOrder[0]];
-			if (typeof user.currentRoundBehavior === "number") {
-				// 현재 라운드 금액
-				const betScore = user.currentRoundBehavior + action.payload;
-				// 베팅한 금액이 유저가 가진 금액보다 많을 경우
-				if (betScore > user.currentScore) {
-					// user.currentRoundBehavior=user.currentScore - user.currentRoundBet;
-					user.currentRoundBehavior = "ALL-IN";
-				} else if (
-					betScore + user.currentRoundBet >
-					user.currentScore
-				) {
-					// user.currentRoundBehavior=user.currentScore - user.currentRoundBet;
-					user.currentRoundBehavior = "ALL-IN";
-				} else {
-					user.currentRoundBehavior += action.payload;
+			if (state.userTurnOrder.length > 0) {
+				// 해당 유저
+				const user = state.users[state.userTurnOrder[0]];
+				if (typeof user.currentRoundBehavior === "number") {
+					// 현재 라운드 금액
+					const betScore = user.currentRoundBehavior + action.payload;
+					// 베팅한 금액이 유저가 가진 금액보다 많을 경우
+					if (betScore > user.currentScore) {
+						// user.currentRoundBehavior=user.currentScore - user.currentRoundBet;
+						user.currentRoundBehavior = "ALL-IN";
+					} else if (
+						betScore + user.currentRoundBet >
+						user.currentScore
+					) {
+						// user.currentRoundBehavior=user.currentScore - user.currentRoundBet;
+						user.currentRoundBehavior = "ALL-IN";
+					} else {
+						user.currentRoundBehavior += action.payload;
+					}
 				}
 			}
 		},
@@ -388,7 +390,7 @@ export const singleSlice = createSlice({
 						}
 
 						// 승자가 있어야 수행
-						if(haveWinner){
+						if (haveWinner) {
 							remainingScore -= potShare;
 						}
 
