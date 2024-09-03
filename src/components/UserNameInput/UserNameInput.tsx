@@ -4,7 +4,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Input } from "antd";
 import { useDispatch } from 'react-redux';
-import { updateUserName } from '../../features/single/singleSlice';
+import { setNameRedundancy, updateUserName } from '../../features/single/singleSlice';
 import React,{ ChangeEvent, useState } from 'react';
 
 type Props = {
@@ -19,6 +19,7 @@ export default function UserNameInput({user,index,isLeft }: Props) {
     dispatch(updateUserName([index,userName]))
 
     const handleChange =(e: ChangeEvent<HTMLInputElement>)=>{
+        dispatch(setNameRedundancy());
         setUserName(e.target.value)
     }
 

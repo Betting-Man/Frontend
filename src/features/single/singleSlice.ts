@@ -23,6 +23,7 @@ export type State = {
 	round: number; // 라운드 수
 	currentRoundTotalScore: number; // 해당 라운드에 걸린 금액
 	requiredCallScore: number; // 콜하기 위한 금액
+	hasDuplicateName : boolean; // 이름 중복 여부
 };
 
 // 초기 상태
@@ -37,6 +38,7 @@ const initialState: State = {
 	round: 1, // 라운드 수
 	currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액
 	requiredCallScore: 0, // 콜하기 위한 금액
+	hasDuplicateName : true, // 이름 중복 여부
 };
 
 // 헬퍼 함수: 턴 넘기기 로직
@@ -101,13 +103,27 @@ export const singleSlice = createSlice({
 		setUsers: (state, action) => {
 			state.users = action.payload;
 		},
-		// 유저 턴 상태 관리
-		// 1.users 배열 시계방향에 맞게 턴에 추가
-		// 2-1. call/die 하면 배열에서 삭제
-		// 2-2. 추가 bet 하면 index 고치고 die를 제외한 나머지 user를 뒤에 추가 // 시작 점을 기준으로 하는 index나 값이 필요
-
-		// 3. 누군가 승리로 끝나면 다시 배열에 users들 추가
-
+		// 시작 전, 유저 이름 중복된 것이 있는지 확인
+		checkNameRedundancy: (state) => {
+			const nameSet = new Set();
+			let hasDuplicate = false;
+		
+			// userNames 배열을 순회하면서 중복된 이름이 있는지 확인
+			for (const name of state.userNames) {
+				if (nameSet.has(name)) {
+					hasDuplicate = true;
+					break;
+				}
+				nameSet.add(name);
+			}
+		
+			// 중복 여부를 상태에 저장 (필요한 경우)
+			state.hasDuplicateName = hasDuplicate;
+		},
+		// 유저 이름 중복 여부 false 로 바꾸기 -> Input 건들 경우
+		setNameRedundancy:(state)=>{
+			state.hasDuplicateName = true;
+		},
 		// users 배열 시계방향에 맞게 턴에 추가
 		setUserTurnOrder: (state) => {
 			// 초기화
@@ -491,6 +507,8 @@ export const {
 	resetUserCount,
 	setInitialBet,
 	setUsers,
+	checkNameRedundancy,
+	setNameRedundancy,
 	setUserTurnOrder,
 	CheckOrCall,
 	AllIn,
