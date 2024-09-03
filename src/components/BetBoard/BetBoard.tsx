@@ -41,7 +41,7 @@ export default function BetBoard({ }: Props) {
   }
 
   return (
-    <div className='bg-secondary px-3 py-6 absolute bottom-0 w-96'>
+    <div className='bg-secondary px-3 py-6 absolute bottom-0 w-[600px]'>
       <div className='flex justify-between '>
         <Button type="primary" onClick={handleNumberClick}>100</Button>
         <Button type="primary" onClick={handleNumberClick}>500</Button>
