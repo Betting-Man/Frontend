@@ -294,10 +294,16 @@ export const singleSlice = createSlice({
 			state.userTurnIndex=state.userTurnStandard.indexOf(selectedUserIndexes[0]); 
 			for (let i = 0; i < state.userTurnStandard.length ; i++) {
 				const value =state.userTurnStandard[(state.userTurnIndex + i) % state.userTurnStandard.length];
-				state.userTurnOrder.push(value); // 턴 다시 추가
-				state.users[value].isTurn=false; // 턴 내용 초기화
-				state.users[value].isDie=false; // 턴 내용 초기화
-				state.users[value].currentRoundBehavior=0; // 이전에 한 행동 초기화
+				const user=state.users[value];
+				const initialBet=state.initialBet;
+				if(user.currentScore>=initialBet){
+					state.userTurnOrder.push(value); // 턴 다시 추가
+					user.isTurn=false; // 턴 내용 초기화
+					user.isDie=false; // 턴 내용 초기화
+					user.currentRoundBehavior=0; // 이전에 한 행동 초기화
+				}else{
+					user.isDie=true;
+				}		
 			}
 			// 첫번째 유저 턴 주기
 			state.users[state.userTurnOrder[0]].isTurn=true;

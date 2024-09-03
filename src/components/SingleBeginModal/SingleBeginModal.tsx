@@ -24,6 +24,7 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
     const leftUsers: number = Math.ceil(userCount / 2);
     const rightUsers: number = Math.floor(userCount / 2);
     const userNames = useSelector((state : RootState) => state.single.userNames)
+    const userNamesExample = ["Sean", "Tom", "Liam", "John", "James", "Mia", "Bob", "Amelia"];
 
     const handleOk = () => {
         dispatch(setInitialBet(initialBet)) // 초기 베팅 금액 상태 업데이트
@@ -53,12 +54,12 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
             <div className='p-3 flex'>
                 <div className="flex flex-col w-1/2 gap-4">
                     {[...Array(leftUsers)].map((_, index) => (
-                        <UserNameInput key={index} user={`User${(index+1) * 2 - 1}`} index={index*2} isLeft={true}/>
+                        <UserNameInput key={index} user={userNamesExample[index*2]} index={index*2} isLeft={true}/>
                     ))}
                 </div>
                 <div className='flex flex-col w-1/2 gap-4'>
                 {[...Array(rightUsers)].map((_, index) => (
-                        <UserNameInput key={index} user={`User${(index+1) * 2}`} index={index*2 + 1} isLeft={false}/>
+                        <UserNameInput key={index} user={userNamesExample[index*2+1]} index={index*2 + 1} isLeft={false}/>
                     ))}
                 </div>
             </div>
