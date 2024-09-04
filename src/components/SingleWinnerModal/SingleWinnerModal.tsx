@@ -42,7 +42,7 @@ export default function SingleWinnerModal({ isModalOpen,setIsModalOpen }: Props)
     const users=useSelector((state : RootState) => state.single.users);
 
     return (
-        <Modal title="Select Winner" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <Modal title="Select Winner" open={isModalOpen} okText='Select' onOk={handleOk} onCancel={handleCancel}>
     <div className="grid grid-cols-2 gap-4">
         {users.map((user, index) => (
             <div

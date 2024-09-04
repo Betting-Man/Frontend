@@ -14,11 +14,17 @@ type Props = {
 }
 
 export default function SingleResultModal({ isModalOpen, setIsModalOpen, }: Props) {
+    const navigate=useNavigate();
 
     const users = useSelector((state: RootState) => state.single.users);
 
+    const handleExitClick = () =>{
+        
+        navigate('/single')
+    }
+
     return (
-        <Modal title="Game Result" width="500px" okText="Start" open={isModalOpen} onCancel={() => setIsModalOpen(false)}>
+        <Modal title="Game Result" width="500px" okText="Cancel" onOk={() => setIsModalOpen(false)} open={isModalOpen} cancelText='Exit' onCancel={handleExitClick}>
             <div className="flex flex-col gap-4">
                 {users.map((user) => {
                     const scoreDifference = user.currentScore - user.initialScore;

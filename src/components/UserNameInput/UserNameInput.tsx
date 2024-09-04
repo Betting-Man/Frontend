@@ -28,7 +28,7 @@ export default function UserNameInput({user,index,isLeft }: Props) {
     };
 
     return (
-        <div className="flex items-center">
+        <div className="flex items-center gap-4">
             {isLeft && <FontAwesomeIcon icon={faUser} size='2xl' />}
             <Input value={userName} onChange={handleChange} onBlur={handleBlur} />
             {!isLeft && <FontAwesomeIcon icon={faUser} size='2xl' />}

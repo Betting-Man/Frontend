@@ -54,8 +54,8 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
     }
 
     return (
-        <Modal title="시작 전 세팅" width="500px" okText={hasDuplicateName ? 'Duplicate Check' : 'Start'} open={isModalOpen} onOk={handleOk} onCancel={() => setIsModalOpen(false)}>
-            <div className='p-3 flex'>
+        <Modal title="Setting For Player Name" width="500px" okText={hasDuplicateName ? 'Duplicate Check' : 'Start'} open={isModalOpen} onOk={handleOk} onCancel={() => setIsModalOpen(false)}>
+            <div className='p-3 flex gap-8'>
                 <div className="flex flex-col w-1/2 gap-4">
                     {[...Array(leftUsers)].map((_, index) => (
                         <UserNameInput key={index} user={userNamesExample[index * 2]} index={index * 2} isLeft={true} />

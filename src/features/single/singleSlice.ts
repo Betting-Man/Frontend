@@ -38,7 +38,7 @@ const initialState: State = {
 	round: 1, // 라운드 수
 	currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액
 	requiredCallScore: 0, // 콜하기 위한 금액
-	hasDuplicateName: true, // 이름 중복 여부
+	hasDuplicateName: false, // 이름 중복 여부
 };
 
 // 헬퍼 함수: 턴 넘기기 로직
