@@ -18,7 +18,7 @@ export default function ScoreBoard({ }: Props) {
         <div className="p-2 flex items-center">
     <div className='flex-grow flex flex-col items-center'>
         <h1 className='text-3xl text-white'>Round Score : {roundScore}</h1>
-        <h1 className='text-xl text-gray-300'>콜하기 위한 금액 : {requiredCallScore}</h1>
+        <h1 className='text-xl text-gray-300'>The Calling Amount : {requiredCallScore}</h1>
     </div>
 
     <Button type="primary" className="ml-auto" onClick={() => setIsModalOpen(true)}>Win</Button>
