@@ -33,7 +33,7 @@ export default function SingleResultModal({ isModalOpen, setIsModalOpen, }: Prop
     }
 
     return (
-        <Modal title="Game Result" width="500px" okText="Cancel" onOk={() => setIsModalOpen(false)} open={isModalOpen} cancelText='Exit' onCancel={handleExitClick}>
+        <Modal title="Game Result" width="500px" okText="Exit" onOk={handleExitClick} open={isModalOpen} cancelText='Cancel' onCancel={() => setIsModalOpen(false)}>
             <div className="flex flex-col gap-4">
                 {users.map((user) => {
                     const scoreDifference = user.currentScore - user.initialScore;
