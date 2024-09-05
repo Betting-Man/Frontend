@@ -43,10 +43,12 @@ const initialState: State = {
 
 // 헬퍼 함수: 턴 넘기기 로직
 function turnOver(state: State) {
-	// 턴 종료
-	state.users[state.userTurnOrder[0]].isTurn = false;
-	// 현재 턴을 넘기기 위해 첫 번째 유저를 배열에서 제거
-	state.userTurnOrder.shift();
+	// 첫 번째 유저를 배열에서 제거하고 턴 종료
+	const previousUserIndex = state.userTurnOrder.shift();
+	if (previousUserIndex !== undefined) {
+		state.users[previousUserIndex].isTurn = false;
+	}
+
 	// userTurnOrder 비어있으면 추가
 	if (state.userTurnOrder.length === 0) {
 		for (let i = 0; i < state.userTurnStandard.length; i++) {
@@ -75,6 +77,7 @@ function turnOver(state: State) {
 		// 그 다음 유저의 턴을 true로 설정합니다.
 		state.users[state.userTurnOrder[0]].isTurn = true;
 	}
+
 }
 
 export const singleSlice = createSlice({
@@ -154,142 +157,154 @@ export const singleSlice = createSlice({
 		},
 		// check나 call 했을 경우
 		CheckOrCall: (state) => {
-			const currentUser = state.users[state.userTurnOrder[0]];
-			// check
-			if (currentUser.currentRoundBet === state.requiredCallScore) {
-				currentUser.currentRoundBehavior = "CHECK";
-			}
-			// call
-			else {
-				// 콜 필요 금액이 자신의 자산보다 높을 경우
-				if (currentUser.currentScore <= state.requiredCallScore) {
-					currentUser.currentRoundBehavior = "ALL-IN";
-					state.currentRoundTotalScore +=
-						currentUser.currentScore - currentUser.currentRoundBet;
-					currentUser.currentRoundBet = currentUser.currentScore;
-					currentUser.isDie = true;
-				} else {
-					currentUser.currentRoundBehavior = "CALL";
-					state.currentRoundTotalScore +=
-						state.requiredCallScore - currentUser.currentRoundBet;
-					currentUser.currentRoundBet = state.requiredCallScore;
+			if (state.userTurnOrder.length > 0) {
+				const currentUser = state.users[state.userTurnOrder[0]];
+				// check
+				if (currentUser.currentRoundBet === state.requiredCallScore) {
+					currentUser.currentRoundBehavior = "CHECK";
 				}
+				// call
+				else {
+					// 콜 필요 금액이 자신의 자산보다 높을 경우
+					if (currentUser.currentScore <= state.requiredCallScore) {
+						currentUser.currentRoundBehavior = "ALL-IN";
+						state.currentRoundTotalScore +=
+							currentUser.currentScore -
+							currentUser.currentRoundBet;
+						currentUser.currentRoundBet = currentUser.currentScore;
+						currentUser.isDie = true;
+					} else {
+						currentUser.currentRoundBehavior = "CALL";
+						state.currentRoundTotalScore +=
+							state.requiredCallScore -
+							currentUser.currentRoundBet;
+						currentUser.currentRoundBet = state.requiredCallScore;
+					}
+				}
+				turnOver(state);
 			}
-			turnOver(state);
 		},
 		// ALL-IN 눌렀을 경우
 		AllIn: (state) => {
-			const currentUser = state.users[state.userTurnOrder[0]];
-			currentUser.currentRoundBehavior = "ALL-IN";
+			if (state.userTurnOrder.length > 0) {
+				const currentUser = state.users[state.userTurnOrder[0]];
+				currentUser.currentRoundBehavior = "ALL-IN";
+			}
 		},
 		// 베팅 버튼 클릭했을 경우
 		betScore: (state) => {
-			const currentUser = state.users[state.userTurnOrder[0]];
+			if (state.userTurnOrder.length > 0) {
+				const currentUser = state.users[state.userTurnOrder[0]];
 
-			if (typeof currentUser.currentRoundBehavior === "number") {
-				// 금액이 해당 라운드 콜 금액을 넘기는지 확인
-				if (
-					state.requiredCallScore <
-					currentUser.currentRoundBehavior +
-						currentUser.currentRoundBet
-				) {
-					currentUser.isTurn = false;
-					// 새로운 userTurnOrder에서 첫 번째 유저의 인덱스를 userTurnStandard를 기준으로 찾습니다.
-					state.userTurnIndex = state.userTurnStandard.indexOf(
-						state.userTurnOrder[0]
-					);
-
-					// 유저 턴 변경 및 인덱스 변경
-					state.userTurnOrder = [];
-
-					// userTurnStandard에서 bet을 한 유저의 인덱스(userTurnIndex)를 기준으로 배열을 갱신합니다.
-					for (
-						let i = 0;
-						i < state.userTurnStandard.length - 1;
-						i++
-					) {
-						const value =
-							state.userTurnStandard[
-								(state.userTurnIndex + i + 1) %
-									state.userTurnStandard.length
-							];
-						// 안죽은 사람만 추가
-						if (state.users[value].isDie === false) {
-							state.userTurnOrder.push(value);
-						}
-					}
-
-					// 필요 콜 금액 변경
-					state.requiredCallScore =
+				if (typeof currentUser.currentRoundBehavior === "number") {
+					// 금액이 해당 라운드 콜 금액을 넘기는지 확인
+					if (
+						state.requiredCallScore <
 						currentUser.currentRoundBehavior +
-						currentUser.currentRoundBet;
-
-					// 해당 라운드 금액 추가
-					state.currentRoundTotalScore +=
-						currentUser.currentRoundBehavior;
-
-					// 해당 유저의 이번 라운드 벳 추가
-					currentUser.currentRoundBet +=
-						currentUser.currentRoundBehavior;
-
-					// 턴 넘기기
-					state.users[state.userTurnOrder[0]].isTurn = true;
-				}
-			}
-			// ALL-IN 일때, BET 했을 경우
-			else if (currentUser.currentRoundBehavior === "ALL-IN") {
-				currentUser.isTurn = false; // 해당 유저 턴 끝내기
-				currentUser.isDie = true; // 더이상 배팅 못하니까 턴 안오게 죽음 처리
-
-				// 유저가 가진 돈이 콜 필요금액보다 많을 경우
-				if (state.requiredCallScore < currentUser.currentScore) {
-					// 새로운 userTurnOrder에서 첫 번째 유저의 인덱스를 userTurnStandard를 기준으로 찾습니다.
-					state.userTurnIndex = state.userTurnStandard.indexOf(
-						state.userTurnOrder[0]
-					);
-
-					// 유저 턴 변경 및 인덱스 변경
-					state.userTurnOrder = [];
-
-					// userTurnStandard에서 bet을 한 유저의 인덱스(userTurnIndex)를 기준으로 배열을 갱신합니다.
-					for (
-						let i = 0;
-						i < state.userTurnStandard.length - 1;
-						i++
+							currentUser.currentRoundBet
 					) {
-						const value =
-							state.userTurnStandard[
-								(state.userTurnIndex + i + 1) %
-									state.userTurnStandard.length
-							];
-						// 안죽은 사람만 추가
-						if (state.users[value].isDie === false) {
-							state.userTurnOrder.push(value);
+						currentUser.isTurn = false;
+						// 새로운 userTurnOrder에서 첫 번째 유저의 인덱스를 userTurnStandard를 기준으로 찾습니다.
+						state.userTurnIndex = state.userTurnStandard.indexOf(
+							state.userTurnOrder[0]
+						);
+
+						// 유저 턴 변경 및 인덱스 변경
+						state.userTurnOrder = [];
+
+						// userTurnStandard에서 bet을 한 유저의 인덱스(userTurnIndex)를 기준으로 배열을 갱신합니다.
+						for (
+							let i = 0;
+							i < state.userTurnStandard.length - 1;
+							i++
+						) {
+							const value =
+								state.userTurnStandard[
+									(state.userTurnIndex + i + 1) %
+										state.userTurnStandard.length
+								];
+							// 안죽은 사람만 추가
+							if (state.users[value].isDie === false) {
+								state.userTurnOrder.push(value);
+							}
+						}
+
+						// 필요 콜 금액 변경
+						state.requiredCallScore =
+							currentUser.currentRoundBehavior +
+							currentUser.currentRoundBet;
+
+						// 해당 라운드 금액 추가
+						state.currentRoundTotalScore +=
+							currentUser.currentRoundBehavior;
+
+						// 해당 유저의 이번 라운드 벳 추가
+						currentUser.currentRoundBet +=
+							currentUser.currentRoundBehavior;
+
+						// 턴 넘기기
+						if (state.userTurnOrder.length > 0) {
+							state.users[state.userTurnOrder[0]].isTurn = true;
 						}
 					}
+				}
+				// ALL-IN 일때, BET 했을 경우
+				else if (currentUser.currentRoundBehavior === "ALL-IN") {
+					currentUser.isTurn = false; // 해당 유저 턴 끝내기
+					currentUser.isDie = true; // 더이상 배팅 못하니까 턴 안오게 죽음 처리
 
-					// 필요 콜 금액 변경
-					state.requiredCallScore = currentUser.currentScore;
+					// 유저가 가진 돈이 콜 필요금액보다 많을 경우
+					if (state.requiredCallScore < currentUser.currentScore) {
+						// 새로운 userTurnOrder에서 첫 번째 유저의 인덱스를 userTurnStandard를 기준으로 찾습니다.
+						state.userTurnIndex = state.userTurnStandard.indexOf(
+							state.userTurnOrder[0]
+						);
 
-					// 해당 라운드 금액 추가
-					state.currentRoundTotalScore +=
-						currentUser.currentScore - currentUser.currentRoundBet;
+						// 유저 턴 변경 및 인덱스 변경
+						state.userTurnOrder = [];
 
-					// 해당 유저의 이번 라운드 벳 추가
-					currentUser.currentRoundBet = currentUser.currentScore;
+						// userTurnStandard에서 bet을 한 유저의 인덱스(userTurnIndex)를 기준으로 배열을 갱신합니다.
+						for (
+							let i = 0;
+							i < state.userTurnStandard.length - 1;
+							i++
+						) {
+							const value =
+								state.userTurnStandard[
+									(state.userTurnIndex + i + 1) %
+										state.userTurnStandard.length
+								];
+							// 안죽은 사람만 추가
+							if (state.users[value].isDie === false) {
+								state.userTurnOrder.push(value);
+							}
+						}
 
-					// 턴 넘기기
-					state.users[state.userTurnOrder[0]].isTurn = true;
-				} else {
-					// 해당 라운드 금액 추가
-					state.currentRoundTotalScore +=
-						currentUser.currentScore - currentUser.currentRoundBet;
+						// 필요 콜 금액 변경
+						state.requiredCallScore = currentUser.currentScore;
 
-					// 해당 유저의 이번 라운드 벳 추가
-					currentUser.currentRoundBet = currentUser.currentScore;
+						// 해당 라운드 금액 추가
+						state.currentRoundTotalScore +=
+							currentUser.currentScore -
+							currentUser.currentRoundBet;
 
-					// 턴 넘기기
-					turnOver(state);
+						// 해당 유저의 이번 라운드 벳 추가
+						currentUser.currentRoundBet = currentUser.currentScore;
+
+						// 턴 넘기기
+						state.users[state.userTurnOrder[0]].isTurn = true;
+					} else {
+						// 해당 라운드 금액 추가
+						state.currentRoundTotalScore +=
+							currentUser.currentScore -
+							currentUser.currentRoundBet;
+
+						// 해당 유저의 이번 라운드 벳 추가
+						currentUser.currentRoundBet = currentUser.currentScore;
+
+						// 턴 넘기기
+						turnOver(state);
+					}
 				}
 			}
 		},
@@ -369,12 +384,11 @@ export const singleSlice = createSlice({
 			}
 			// 유저마다 걸었던 금액이 다른 경우
 			else {
-				// 유저마다 걸었던 금액 배열로 저장
-				const userRoundBets: number[] = users.map(
-					(user) => user.currentRoundBet
-				);
-				// 모든 유저들의 걸었던 금액을 오름차순으로 정렬
-				userRoundBets.sort((a, b) => a - b);
+				// 유저마다 걸었던 금액 배열로 저장하고 오름차순 정렬
+				const userRoundBets: number[] = users
+					.filter((user) => user.currentRoundBet !== 0) // 베팅 안한 사람들 제외
+					.map((user) => user.currentRoundBet)
+					.sort((a, b) => a - b); // 오름차순 정렬
 
 				// 팟 금액 계산
 				let remainingScore = totalScore; // 남은 총 금액
@@ -463,14 +477,18 @@ export const singleSlice = createSlice({
 				}
 			}
 
-			// 첫번째 유저 턴 주기
+			if(state.userTurnOrder.length>0){
+				// 첫번째 유저 턴 주기
 			state.users[state.userTurnOrder[0]].isTurn = true;
+			}
 			// 라운드 점수 초기화
 			state.currentRoundTotalScore = 0;
 		},
 		// 현재 턴 유저의 currentRoundBehavior 초기화
 		resetUserCurrentRoundBehavior: (state) => {
-			state.users[state.userTurnOrder[0]].currentRoundBehavior = 0;
+			if (state.userTurnOrder.length > 0) {
+				state.users[state.userTurnOrder[0]].currentRoundBehavior = 0;
+			}
 		},
 		// 모든 유저의 currentBehavior 초기화
 		resetAllUserCurrentRoundBehavior: (state) => {
@@ -487,7 +505,15 @@ export const singleSlice = createSlice({
 			const initialBet = state.initialBet;
 			let survivedUserCount = 0;
 
+			// 혹시나 모를 오류 검사 -> 나중에 삭제하기
+			let totalScore=0;
+			let initialTotalScore = 0;
+
 			state.users.forEach((user) => {
+				// 혹시나 모를 오류 검사 -> 나중에 삭제하기
+				totalScore += user.currentScore;
+				initialTotalScore += user.initialScore;
+
 				if (user.currentScore >= initialBet) {
 					user.currentRoundBet = initialBet;
 					survivedUserCount++;
@@ -496,6 +522,9 @@ export const singleSlice = createSlice({
 				}
 			});
 
+			if(totalScore !== initialTotalScore){
+				alert("오류 발생")
+			}
 			state.currentRoundTotalScore = initialBet * survivedUserCount;
 			state.requiredCallScore = initialBet;
 		},
