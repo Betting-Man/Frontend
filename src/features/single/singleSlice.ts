@@ -417,9 +417,8 @@ export const singleSlice = createSlice({
 						// 승자가 있어야 수행
 						if (haveWinner) {
 							remainingScore -= potShare;
-						}
 
-						// 팟에 참여한 유저들 중에서 승리한 유저들에게 팟 금액을 나누어줌
+							// 팟에 참여한 유저들 중에서 승리한 유저들에게 팟 금액을 나누어줌
 						const winnersInThisPot = selectedUserIndexes.filter(
 							(index) =>
 								users[index].currentRoundBet >= currentBet
@@ -428,17 +427,18 @@ export const singleSlice = createSlice({
 							users[winnerIndex].currentScore +=
 								potShare / winnersInThisPot.length;
 						});
+						}
 
 						// 이전 베팅 금액 갱신
 						previousBet = currentBet;
 					}
 				}
 
-				// 남은 금액이 있을 경우
+				// 승자가 없는 상태에서 남은 금액이 있을 경우
 				if (remainingScore > 0) {
 					users.forEach((user, index) => {
 						const loserCount =
-							users.length - selectedUserIndexes.length;
+							users.filter((user)=>user.currentRoundBet>previousBet).length - selectedUserIndexes.length;
 						if (!selectedUserIndexes.includes(index)) {
 							user.currentScore += remainingScore / loserCount;
 						}

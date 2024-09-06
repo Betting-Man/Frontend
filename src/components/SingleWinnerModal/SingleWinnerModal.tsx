@@ -44,7 +44,7 @@ export default function SingleWinnerModal({ isModalOpen,setIsModalOpen }: Props)
     return (
         <Modal title="Select Winner" open={isModalOpen} okText='Select' onOk={handleOk} onCancel={handleCancel}>
     <div className="grid grid-cols-2 gap-4">
-        {users.map((user, index) => (
+        {users.filter((user)=>user.currentRoundBet>0).map((user, index) => (
             <div
             key={index}
             className={`flex items-center p-4 border cursor-pointer ${
