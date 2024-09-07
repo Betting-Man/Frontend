@@ -420,8 +420,6 @@ export const singleSlice = createSlice({
 						if (haveWinner) {
 							remainingScore -= potShare;
 
-							alert(potShare);
-
 							// 팟에 참여한 유저들 중에서 승리한 유저들에게 팟 금액을 나누어줌
 							const winnersInThisPot = selectedUserIndexes.filter(
 								(index) =>
