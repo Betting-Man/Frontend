@@ -77,7 +77,6 @@ function turnOver(state: State) {
 		// 그 다음 유저의 턴을 true로 설정합니다.
 		state.users[state.userTurnOrder[0]].isTurn = true;
 	}
-
 }
 
 export const singleSlice = createSlice({
@@ -419,14 +418,15 @@ export const singleSlice = createSlice({
 							remainingScore -= potShare;
 
 							// 팟에 참여한 유저들 중에서 승리한 유저들에게 팟 금액을 나누어줌
-						const winnersInThisPot = selectedUserIndexes.filter(
-							(index) =>
-								users[index].currentRoundBet >= currentBet
-						);
-						winnersInThisPot.forEach((winnerIndex) => {
-							users[winnerIndex].currentScore +=
-								potShare / winnersInThisPot.length;
-						});
+							const winnersInThisPot = selectedUserIndexes.filter(
+								(index) =>
+									users[index].currentRoundBet >= currentBet
+							);
+
+							winnersInThisPot.forEach((winnerIndex) => {
+								users[winnerIndex].currentScore +=
+									potShare / winnersInThisPot.length;
+							});
 						}
 
 						// 이전 베팅 금액 갱신
@@ -436,13 +436,15 @@ export const singleSlice = createSlice({
 
 				// 승자가 없는 상태에서 남은 금액이 있을 경우
 				if (remainingScore > 0) {
+					const loserIndex : number[] = [];
 					users.forEach((user, index) => {
-						const loserCount =
-							users.filter((user)=>user.currentRoundBet>previousBet).length - selectedUserIndexes.length;
-						if (!selectedUserIndexes.includes(index)) {
-							user.currentScore += remainingScore / loserCount;
+						if(user.currentRoundBet >= previousBet && !selectedUserIndexes.includes(index)){
+							loserIndex.push(index);
 						}
 					});
+					loserIndex.forEach((index)=>{
+						users[index].currentScore+=remainingScore / loserIndex.length;
+					})
 				}
 
 				// 모든 유저의 베팅 금액 계산 및 초기화
@@ -451,7 +453,7 @@ export const singleSlice = createSlice({
 					user.currentRoundBet = 0;
 				});
 			}
-
+			
 			// 해당 라운드 끝나고 다음 라운드 세팅하기
 			state.userTurnOrder = []; // 배열 초기화
 			// index 승자 기준으로 초기화 => 승자 부터 라운드 시작
@@ -477,9 +479,9 @@ export const singleSlice = createSlice({
 				}
 			}
 
-			if(state.userTurnOrder.length>0){
+			if (state.userTurnOrder.length > 0) {
 				// 첫번째 유저 턴 주기
-			state.users[state.userTurnOrder[0]].isTurn = true;
+				state.users[state.userTurnOrder[0]].isTurn = true;
 			}
 			// 라운드 점수 초기화
 			state.currentRoundTotalScore = 0;
@@ -506,7 +508,7 @@ export const singleSlice = createSlice({
 			let survivedUserCount = 0;
 
 			// 혹시나 모를 오류 검사 -> 나중에 삭제하기
-			let totalScore=0;
+			let totalScore = 0;
 			let initialTotalScore = 0;
 
 			state.users.forEach((user) => {
@@ -522,8 +524,8 @@ export const singleSlice = createSlice({
 				}
 			});
 
-			if(totalScore !== initialTotalScore){
-				alert("오류 발생")
+			if (totalScore !== initialTotalScore) {
+				alert("오류 발생");
 			}
 			state.currentRoundTotalScore = initialBet * survivedUserCount;
 			state.requiredCallScore = initialBet;
