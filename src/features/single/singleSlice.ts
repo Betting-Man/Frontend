@@ -15,7 +15,7 @@ export type User = {
 export type State = {
 	userTurnOrder: number[]; // 유저의 턴 배열 - 턴에 맞는 유저의 인덱스가 적혀있음
 	userTurnStandard: number[]; // 유저의 턴을 계산하는데 기준이 되는 배열
-	userTurnIndex: number; // 유저의 턴을 기준 삼기 위한 인덱스
+	userTurnIndex: number; // userTurnStandard에서의 이 값으로 users안에서의 index를 찾아감
 	users: User[]; // 유저 객체의 배열
 	userNames: string[]; // 유저 이름 배열
 	userCount: number; // 유저 수
@@ -105,6 +105,10 @@ export const singleSlice = createSlice({
 		setUsers: (state, action) => {
 			state.users = action.payload;
 		},
+		// // 유저 이름으로 index 값 
+		// findUserIndex : (state,action)=>{
+
+		// },
 		// 시작 전, 유저 이름 중복된 것이 있는지 확인
 		checkNameRedundancy: (state) => {
 			const nameSet = new Set();
@@ -350,12 +354,14 @@ export const singleSlice = createSlice({
 			const users = state.users; // 유저 배열
 
 			// 유저마다 걸었던 금액이 같은지 확인
-			const allBetsAreEqual = users.every(
-				(user) =>
-					user.currentRoundBet ===
-					users[state.userTurnIndex].currentRoundBet
-			);
-
+			const allBetsAreEqual = users
+				.filter((user) => user.currentRoundBet > 0)
+				.every(
+					(user) =>
+						user.currentRoundBet ===
+						users[state.userTurnStandard[state.userTurnIndex]].currentRoundBet
+				);
+			
 			// 승자들 건 금액별로 정렬
 			selectedUserIndexes.sort(
 				(a, b) => users[a].currentRoundBet - users[b].currentRoundBet
@@ -368,17 +374,14 @@ export const singleSlice = createSlice({
 
 				// 이긴 유저들에 대해서 점수를 나눠서 추가합니다.
 				selectedUserIndexes.forEach((index: number) => {
-					users[index].currentScore +=
-						scoreToAdd - users[index].currentRoundBet;
-					users[index].currentRoundBet = 0;
+					const winner = users[index];
+					winner.currentScore += scoreToAdd;
 				});
 
 				// 이기지 못한 유저들에 대해서 점수를 나눠서 뺍니다.
-				users.forEach((user, index) => {
-					if (!selectedUserIndexes.includes(index)) {
-						user.currentScore -= user.currentRoundBet;
-						user.currentRoundBet = 0;
-					}
+				users.forEach((user) => {
+					user.currentScore -= user.currentRoundBet;
+					user.currentRoundBet = 0;
 				});
 			}
 			// 유저마다 걸었던 금액이 다른 경우
@@ -436,15 +439,19 @@ export const singleSlice = createSlice({
 
 				// 승자가 없는 상태에서 남은 금액이 있을 경우
 				if (remainingScore > 0) {
-					const loserIndex : number[] = [];
+					const loserIndex: number[] = [];
 					users.forEach((user, index) => {
-						if(user.currentRoundBet >= previousBet && !selectedUserIndexes.includes(index)){
+						if (
+							user.currentRoundBet >= previousBet &&
+							!selectedUserIndexes.includes(index)
+						) {
 							loserIndex.push(index);
 						}
 					});
-					loserIndex.forEach((index)=>{
-						users[index].currentScore+=remainingScore / loserIndex.length;
-					})
+					loserIndex.forEach((index) => {
+						users[index].currentScore +=
+							remainingScore / loserIndex.length;
+					});
 				}
 
 				// 모든 유저의 베팅 금액 계산 및 초기화
@@ -453,10 +460,10 @@ export const singleSlice = createSlice({
 					user.currentRoundBet = 0;
 				});
 			}
-			
+
 			// 해당 라운드 끝나고 다음 라운드 세팅하기
 			state.userTurnOrder = []; // 배열 초기화
-			// index 승자 기준으로 초기화 => 승자 부터 라운드 시작
+			// index 승자 기준으로 초기화 => 승자 부터 라운드 시작하게 하기 위해서
 			state.userTurnIndex = state.userTurnStandard.indexOf(
 				selectedUserIndexes[0]
 			);
