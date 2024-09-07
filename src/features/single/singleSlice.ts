@@ -402,7 +402,7 @@ export const singleSlice = createSlice({
 
 					if (currentBet > previousBet) {
 						const potShare =
-							(currentBet - previousBet) * (users.length - i);
+							(currentBet - previousBet) * (userRoundBets.length - i);
 
 						// 승자가 있는지 여부
 						let haveWinner: boolean = false;
@@ -419,6 +419,8 @@ export const singleSlice = createSlice({
 						// 승자가 있어야 수행
 						if (haveWinner) {
 							remainingScore -= potShare;
+
+							alert(potShare);
 
 							// 팟에 참여한 유저들 중에서 승리한 유저들에게 팟 금액을 나누어줌
 							const winnersInThisPot = selectedUserIndexes.filter(
