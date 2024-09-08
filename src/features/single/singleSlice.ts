@@ -430,17 +430,20 @@ export const singleSlice = createSlice({
 								users[winnerIndex].currentScore +=
 									potShare / winnersInThisPot.length;
 							});
-						}
 
-						// 이전 베팅 금액 갱신
-						previousBet = currentBet;
+							// 이전 베팅 금액 갱신
+							previousBet = currentBet;
+						}
 					}
 				}
 
 				// 승자가 없는 상태에서 남은 금액이 있을 경우
 				if (remainingScore > 0) {
 					const loserIndex: number[] = [];
+
+					// user 돌면서 현재 걸었던 금액과 
 					users.forEach((user, index) => {
+
 						if (
 							user.currentRoundBet >= previousBet &&
 							!selectedUserIndexes.includes(index)
@@ -448,10 +451,16 @@ export const singleSlice = createSlice({
 							loserIndex.push(index);
 						}
 					});
+
 					loserIndex.forEach((index) => {
 						users[index].currentScore +=
-							remainingScore / loserIndex.length;
+							(users[index].currentRoundBet-previousBet);
+						remainingScore -= (users[index].currentRoundBet-previousBet);
 					});
+				}
+
+				if(remainingScore!==0){
+					alert("돈 나누는거 오류")
 				}
 
 				// 모든 유저의 베팅 금액 계산 및 초기화
