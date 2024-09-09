@@ -19,6 +19,7 @@ export type State = {
 	users: User[]; // 유저 객체의 배열
 	userNames: string[]; // 유저 이름 배열
 	userCount: number; // 유저 수
+	initialScore: number; // 게임 초기 시작 금액
 	initialBet: number; // 초기 베팅 필수 금액
 	round: number; // 라운드 수
 	currentRoundTotalScore: number; // 해당 라운드에 걸린 금액
@@ -34,6 +35,7 @@ const initialState: State = {
 	users: [], // 유저 객체의 배열
 	userNames: [], // 유저 이름 배열
 	userCount: 0, // 유저 수
+	initialScore: 0, // 초기 시작 금액
 	initialBet: 0, // 초기 베팅 필수 금액
 	round: 1, // 라운드 수
 	currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액
@@ -105,10 +107,19 @@ export const singleSlice = createSlice({
 		setUsers: (state, action) => {
 			state.users = action.payload;
 		},
-		// // 유저 이름으로 index 값 
-		// findUserIndex : (state,action)=>{
-
-		// },
+		// 시작 금액 세팅
+		setInitialScore: (state, action) => {
+			state.initialScore = action.payload;
+		},
+		// 유저 돈 추가하기
+		incrementUserScore: (state, action: { payload: number[] }) => {
+			const initialScore = state.initialScore;
+			action.payload.forEach((index) => {
+				const user = state.users[index];
+				user.currentScore += initialScore;
+				user.initialScore += initialScore;
+			});
+		},
 		// 시작 전, 유저 이름 중복된 것이 있는지 확인
 		checkNameRedundancy: (state) => {
 			const nameSet = new Set();
@@ -359,9 +370,10 @@ export const singleSlice = createSlice({
 				.every(
 					(user) =>
 						user.currentRoundBet ===
-						users[state.userTurnStandard[state.userTurnIndex]].currentRoundBet
+						users[state.userTurnStandard[state.userTurnIndex]]
+							.currentRoundBet
 				);
-			
+
 			// 승자들 건 금액별로 정렬
 			selectedUserIndexes.sort(
 				(a, b) => users[a].currentRoundBet - users[b].currentRoundBet
@@ -402,7 +414,8 @@ export const singleSlice = createSlice({
 
 					if (currentBet > previousBet) {
 						const potShare =
-							(currentBet - previousBet) * (userRoundBets.length - i);
+							(currentBet - previousBet) *
+							(userRoundBets.length - i);
 
 						// 승자가 있는지 여부
 						let haveWinner: boolean = false;
@@ -441,9 +454,8 @@ export const singleSlice = createSlice({
 				if (remainingScore > 0) {
 					const loserIndex: number[] = [];
 
-					// user 돌면서 현재 걸었던 금액과 
+					// user 돌면서 현재 걸었던 금액과
 					users.forEach((user, index) => {
-
 						if (
 							user.currentRoundBet >= previousBet &&
 							!selectedUserIndexes.includes(index)
@@ -454,13 +466,14 @@ export const singleSlice = createSlice({
 
 					loserIndex.forEach((index) => {
 						users[index].currentScore +=
-							(users[index].currentRoundBet-previousBet);
-						remainingScore -= (users[index].currentRoundBet-previousBet);
+							users[index].currentRoundBet - previousBet;
+						remainingScore -=
+							users[index].currentRoundBet - previousBet;
 					});
 				}
 
-				if(remainingScore!==0){
-					alert("돈 나누는거 오류")
+				if (remainingScore !== 0) {
+					alert("돈 나누는거 오류");
 				}
 
 				// 모든 유저의 베팅 금액 계산 및 초기화
@@ -565,7 +578,9 @@ export const {
 	setUserCount,
 	updateUserName,
 	resetUserCount,
+	setInitialScore,
 	setInitialBet,
+	incrementUserScore,
 	setUsers,
 	checkNameRedundancy,
 	setNameRedundancy,
