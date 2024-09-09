@@ -21,6 +21,7 @@ export type State = {
 	userCount: number; // 유저 수
 	initialScore: number; // 게임 초기 시작 금액
 	initialBet: number; // 초기 베팅 필수 금액
+	isStartingRound : boolean, // 해당 라운드 시작 여부
 	round: number; // 라운드 수
 	currentRoundTotalScore: number; // 해당 라운드에 걸린 금액
 	requiredCallScore: number; // 콜하기 위한 금액
@@ -37,6 +38,7 @@ const initialState: State = {
 	userCount: 0, // 유저 수
 	initialScore: 0, // 초기 시작 금액
 	initialBet: 0, // 초기 베팅 필수 금액
+	isStartingRound: false, // 해당 라운드 시작 여부
 	round: 1, // 라운드 수
 	currentRoundTotalScore: 0, // 해당 라운드에 걸린 금액
 	requiredCallScore: 0, // 콜하기 위한 금액
@@ -119,6 +121,48 @@ export const singleSlice = createSlice({
 				user.currentScore += initialScore;
 				user.initialScore += initialScore;
 			});
+
+			// 돈 충전한 후에는 배열 다시 만들기
+			state.userTurnOrder = []; // 배열 초기화
+
+			for (let i = 0; i < state.userTurnStandard.length; i++) {
+				const value =
+					state.userTurnStandard[
+						(state.userTurnIndex + i) %
+							state.userTurnStandard.length
+					];
+				const user = state.users[value];
+				const initialBet = state.initialBet;
+
+				if (user.currentScore >= initialBet) {
+					state.userTurnOrder.push(value); // 턴 다시 추가
+					user.isTurn = false; // 턴 내용 초기화
+					user.isDie = false; // 턴 내용 초기화
+					user.currentRoundBehavior = 0; // 이전에 한 행동 초기화
+				} else {
+					user.isDie = true;
+				}
+			}
+
+			if (state.userTurnOrder.length > 0) {
+				// 첫번째 유저 턴 주기
+				state.users[state.userTurnOrder[0]].isTurn = true;
+			}
+
+			const initialBet = state.initialBet;
+			let survivedUserCount = 0;
+
+			state.users.forEach((user) => {
+				if (user.currentScore >= initialBet) {
+					user.currentRoundBet = initialBet;
+					survivedUserCount++;
+				} else {
+					user.isDie = true;
+				}
+			});
+
+			state.currentRoundTotalScore = initialBet * survivedUserCount;
+			state.requiredCallScore = initialBet;
 		},
 		// 시작 전, 유저 이름 중복된 것이 있는지 확인
 		checkNameRedundancy: (state) => {
@@ -172,6 +216,7 @@ export const singleSlice = createSlice({
 		// check나 call 했을 경우
 		CheckOrCall: (state) => {
 			if (state.userTurnOrder.length > 0) {
+				state.isStartingRound = true;
 				const currentUser = state.users[state.userTurnOrder[0]];
 				// check
 				if (currentUser.currentRoundBet === state.requiredCallScore) {
@@ -201,6 +246,7 @@ export const singleSlice = createSlice({
 		// ALL-IN 눌렀을 경우
 		AllIn: (state) => {
 			if (state.userTurnOrder.length > 0) {
+				state.isStartingRound = true;
 				const currentUser = state.users[state.userTurnOrder[0]];
 				currentUser.currentRoundBehavior = "ALL-IN";
 			}
@@ -325,6 +371,7 @@ export const singleSlice = createSlice({
 		// Die 눌렀을 때
 		dieUser: (state) => {
 			if (state.userTurnOrder.length > 0) {
+				state.isStartingRound = true;
 				state.users[state.userTurnOrder[0]].isDie = true;
 				state.users[state.userTurnOrder[0]].currentRoundBehavior =
 					"DIE";
@@ -337,6 +384,7 @@ export const singleSlice = createSlice({
 			action: { payload: number }
 		) => {
 			if (state.userTurnOrder.length > 0) {
+				state.isStartingRound = true;
 				// 해당 유저
 				const user = state.users[state.userTurnOrder[0]];
 				if (typeof user.currentRoundBehavior === "number") {
@@ -526,6 +574,7 @@ export const singleSlice = createSlice({
 			state.users.forEach((user) => {
 				user.currentRoundBehavior = 0;
 			});
+			state.isStartingRound = false;
 		},
 		// 라운드 인당 콜 금액 초기화
 		resetRequiredCallScore: (state) => {

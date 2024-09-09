@@ -19,6 +19,8 @@ export default function Header({ }: Props) {
 
   // 라운드 상태 변수
   const round = useSelector((state: RootState) => state.single.round);
+  // 라운드 시작 여부 변수
+  const isStartingRound = useSelector((state: RootState) => state.single.isStartingRound);
 
   // Result 버튼 클릭
   const handleResultClick = () => {
@@ -41,7 +43,7 @@ export default function Header({ }: Props) {
       <h1 className="text-2xl">Round - {round}</h1>
       <div className="flex gap-2">
         <Button type="primary" onClick={handleSettingClick}>Setting</Button>
-        <Button  onClick={handleMoneyClick}><FontAwesomeIcon icon={faPlus} /></Button>
+        <Button  onClick={handleMoneyClick} disabled={isStartingRound}><FontAwesomeIcon icon={faPlus} /></Button>
       </div>
 
       {isResultModalOpen && <SingleResultModal isModalOpen={isResultModalOpen} setIsModalOpen={setIsResultModalOpen} />}
