@@ -52,7 +52,7 @@ export default function Single({ }: Props) {
                 <div className="flex flex-col items-center">
                     <p className="text-3xl text-white font-semibold">total Score</p>
                     <Select
-                        defaultValue='10000'
+                        defaultValue='5000'
                         style={{ width: 120 }}
                         onChange={(value) => setInitialScore(Number(value))}
                         options={initialScoreOptions}
