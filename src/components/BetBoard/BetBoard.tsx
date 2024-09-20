@@ -42,19 +42,18 @@ export default function BetBoard({ }: Props) {
 
   return (
     <div className='bg-secondary px-3 py-6 absolute bottom-0 w-[600px] max-w-full'>
-      <div className='flex justify-between '>
-        <Button type="primary" onClick={handleNumberClick}>100</Button>
-        <Button type="primary" onClick={handleNumberClick}>500</Button>
-        <Button type="primary" onClick={handleNumberClick}>1000</Button>
-        <Button type="primary" onClick={handleBetClick}>BET</Button>
-        <Button type="primary" onClick={handleCancelClick}>CANCEL</Button>
+      <div className='flex justify-between gap-4 '>
+        <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>100</Button>
+        <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>500</Button>
+        <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>1000</Button>
+        <Button className=" flex-grow-1" type="primary" onClick={handleBetClick}>BET</Button>
+        <Button className=" flex-grow-1" type="primary" onClick={handleCancelClick}>CANCEL</Button>
       </div>
-      <div className='flex justify-around mt-6'>
-        <Button type="primary" onClick={handleCallClick}>CHECK / CALL</Button>
-        <Button type="primary" onClick={handleAllInClick}>ALL-IN</Button>
-        <Button type="primary" onClick={handleDieClick}>DIE</Button>
+      <div className='flex justify-around gap-4 mt-6'>
+        <Button className="bg-black flex-grow-2" type="primary" onClick={handleCallClick}>CHECK / CALL</Button>
+        <Button className="bg-yellow-500 flex-grow-1 hover:bg-black" type="primary" onClick={handleAllInClick}>ALL-IN</Button>
+        <Button className="bg-red-500 flex-grow-1" type="primary" onClick={handleDieClick}>DIE</Button>
       </div>
-
     </div>
   )
 }
