@@ -80,7 +80,7 @@ export default function BetBoard() {
 
   return (
     <div className='bg-secondary px-3 py-6 absolute bottom-0 w-[600px] max-w-full'>
-      <div className='flex justify-between gap-4 '>
+      <div className='flex justify-between gap-3 '>
         <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>100</Button>
         <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>500</Button>
         <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>1000</Button>
