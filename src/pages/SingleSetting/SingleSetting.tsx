@@ -1,21 +1,13 @@
-import { Select, Checkbox, Button, Modal, Input } from "antd";
+import { Select, Checkbox, Button} from "antd";
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
-import RightUserNameInput from "../../components/UserNameInput/UserNameInput";
-import useUserposition from "../../hooks/useUserPostition";
 import SingleBeginModal from "../../components/SingleBeginModal/SingleBeginModal";
 
-
-type Props = {}
-
-export default function Single({ }: Props) {
+export default function Single() {
     const [isModalOpen, setIsModalOpen] = useState(false); // 유저 닉네임 짓는 모달창 오픈 여부
     const [isInitialBet, setIsInitialBet] = useState(true); // 초기 베팅 여부
     const [numberOfUser, setNumberOfUser] = useState(2); // 참여하는 유저 수
     const [initialScore, setInitialScore] = useState(5000); // 초기 금액
     const [initialBet, setInitialBet] = useState(50); // 초기 베팅 금액
-
-    const navigate = useNavigate();
 
     // 시작 금액 배열
     const initialScoreOptions = Array.from({ length: 10 }, (_, index) => {

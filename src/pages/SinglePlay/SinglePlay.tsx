@@ -4,9 +4,7 @@ import ScoreBoard from '../../components/ScoreBoard/ScoreBoard'
 import UserTable from '../../components/UserTable/UserTable'
 import BetBoard from '../../components/BetBoard/BetBoard'
 
-type Props = {}
-
-export default function SinglePlay({}: Props) {
+export default function SinglePlay() {
   return (
     <div>
         <Header/>

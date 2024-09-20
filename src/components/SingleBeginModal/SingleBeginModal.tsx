@@ -1,10 +1,9 @@
-import { Modal, message } from "antd";
-import React, { useEffect, useState } from "react";
+import { Modal} from "antd";
+import React from "react";
 import { useNavigate } from 'react-router-dom';
-import useUserposition from "../../hooks/useUserPostition";
 import UserNameInput from "../UserNameInput/UserNameInput";
 import { useSelector, useDispatch } from 'react-redux';
-import { setUserCount, setUsers, setInitialBet, setUserTurnOrder, setInitialRoundSetting, checkNameRedundancy, setInitialScore } from "../../features/single/singleSlice";
+import { setUsers, setInitialBet, setUserTurnOrder, setInitialRoundSetting, checkNameRedundancy, setInitialScore } from "../../features/single/singleSlice";
 import { RootState } from "../../app/store";
 import { User } from "../../features/single/singleSlice";
 

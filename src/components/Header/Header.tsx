@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "antd";
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector} from 'react-redux';
 import { RootState } from '../../app/store';
 import SingleResultModal from "../SingleResultModal/SingleResultModal";
 import SingleSettingModal from "../SingleSettingModal/SingleSettingModal";
@@ -10,9 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-type Props = {}
-
-export default function Header({ }: Props) {
+export default function Header() {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false); // 유저 베팅 결과 모달창 오픈 여부
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false); // 유저 세팅 모달창 오픈 여부
   const [isMoneyModalOpen, setIsMoneyModalOpen] = useState(false); // 유저 돈 충전 모달창 오픈 여부

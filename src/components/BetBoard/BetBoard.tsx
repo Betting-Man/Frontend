@@ -3,9 +3,7 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { dieUser, incrementUserCurrentRoundBehavior,resetUserCurrentRoundBehavior,betScore,CheckOrCall, AllIn } from "../../features/single/singleSlice";
 
-type Props = {}
-
-export default function BetBoard({ }: Props) {
+export default function BetBoard() {
   const dispatch = useDispatch();
 
   // 100, 500, 1000 클릭했을 때

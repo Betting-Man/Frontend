@@ -21,7 +21,7 @@ export type State = {
 	userCount: number; // 유저 수
 	initialScore: number; // 게임 초기 시작 금액
 	initialBet: number; // 초기 베팅 필수 금액
-	isStartingRound : boolean, // 해당 라운드 시작 여부
+	isStartingRound: boolean; // 해당 라운드 시작 여부
 	round: number; // 라운드 수
 	currentRoundTotalScore: number; // 해당 라운드에 걸린 금액
 	requiredCallScore: number; // 콜하기 위한 금액

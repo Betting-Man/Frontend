@@ -1,11 +1,9 @@
 import React from 'react'
 import UserCard from "../UserCard/UserCard";
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector} from 'react-redux';
 import { RootState } from '../../app/store';
 
-type Props = {}
-
-export default function UserTable({ }: Props) {
+export default function UserTable() {
     const users = useSelector((state: RootState) => state.single.users)
 
     return (
