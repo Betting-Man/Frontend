@@ -38,6 +38,46 @@ export default function BetBoard() {
     dispatch(dieUser());
   }
 
+  const CheckAndCallButton = () => (
+    <Button
+      style={{
+        backgroundColor: "#000001",
+        boxShadow: "none", 
+      }}
+      type="primary"
+      onClick={handleCallClick}
+      className=" flex-grow-2"
+    >
+      CHECK / CALL
+    </Button>
+  );
+
+  const AllInButton = () => (
+    <Button
+      style={{
+        backgroundColor: "#eab308",
+        boxShadow: "none",
+      }}
+      type="primary" onClick={handleAllInClick}
+      className=" flex-grow-1"
+    >
+      All-IN
+    </Button>
+  );
+
+  const DieButton = () => (
+    <Button
+      style={{
+        backgroundColor: "#ef4444",
+        boxShadow: "none", 
+      }}
+      type="primary" onClick={handleDieClick}
+      className=" flex-grow-1"
+    >
+      DIE
+    </Button>
+  );
+
   return (
     <div className='bg-secondary px-3 py-6 absolute bottom-0 w-[600px] max-w-full'>
       <div className='flex justify-between gap-4 '>
@@ -48,9 +88,9 @@ export default function BetBoard() {
         <Button className=" flex-grow-1" type="primary" onClick={handleCancelClick}>CANCEL</Button>
       </div>
       <div className='flex justify-around gap-4 mt-6'>
-        <Button className="bg-black flex-grow-2" type="primary" onClick={handleCallClick}>CHECK / CALL</Button>
-        <Button className="bg-yellow-500 flex-grow-1 hover:bg-black" type="primary" onClick={handleAllInClick}>ALL-IN</Button>
-        <Button className="bg-red-500 flex-grow-1" type="primary" onClick={handleDieClick}>DIE</Button>
+        <CheckAndCallButton />
+        <AllInButton/>
+        <DieButton/>
       </div>
     </div>
   )
