@@ -36,7 +36,7 @@ export default function Header() {
   }
 
   return (
-    <div className="header flex justify-between p-3">
+    <div id="header" className="flex justify-between p-3">
       <Button type="primary" onClick={handleResultClick} >Result</Button>
       <h1 className="text-lg sm:text-2xl">Round - {round}</h1>
       <div className="flex gap-2">

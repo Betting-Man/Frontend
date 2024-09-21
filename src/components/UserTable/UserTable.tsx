@@ -7,7 +7,7 @@ export default function UserTable() {
     const users = useSelector((state: RootState) => state.single.users)
 
     return (
-        <div className='p-3 flex'>
+        <div id='user_table' className='p-3 flex'>
             <div id='leftUser' className='flex flex-col w-1/2'>
                 {users.map((user, index) => (
                     index % 2 === 0 && <UserCard key={index} isLeft={true} user={user}/>

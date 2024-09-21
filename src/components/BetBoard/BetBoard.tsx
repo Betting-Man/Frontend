@@ -46,7 +46,7 @@ export default function BetBoard() {
       }}
       type="primary"
       onClick={handleCallClick}
-      className=" flex-grow-2"
+      className="flex-grow-2 tall:h-12 tall:text-lg"
     >
       CHECK / CALL
     </Button>
@@ -59,7 +59,7 @@ export default function BetBoard() {
         boxShadow: "none",
       }}
       type="primary" onClick={handleAllInClick}
-      className=" flex-grow-1"
+      className={buttonCss}
     >
       All-IN
     </Button>
@@ -72,20 +72,22 @@ export default function BetBoard() {
         boxShadow: "none", 
       }}
       type="primary" onClick={handleDieClick}
-      className=" flex-grow-1"
+      className={buttonCss}
     >
       DIE
     </Button>
   );
 
+  const buttonCss="flex-grow-1 tall:h-12 tall:text-lg"
+
   return (
-    <div className='bg-secondary px-3 py-6 absolute bottom-0 w-[600px] max-w-full'>
+    <div id="bet_board" className='bg-secondary px-3 py-6 absolute bottom-0 w-[600px] max-w-full '>
       <div className='flex justify-between gap-3 '>
-        <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>100</Button>
-        <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>500</Button>
-        <Button className=" flex-grow-1" type="primary" onClick={handleNumberClick}>1000</Button>
-        <Button className=" flex-grow-1" type="primary" onClick={handleBetClick}>BET</Button>
-        <Button className=" flex-grow-1" type="primary" onClick={handleCancelClick}>CANCEL</Button>
+        <Button className={buttonCss} type="primary" onClick={handleNumberClick}>100</Button>
+        <Button className={buttonCss} type="primary" onClick={handleNumberClick}>500</Button>
+        <Button className={buttonCss} type="primary" onClick={handleNumberClick}>1000</Button>
+        <Button className={buttonCss} type="primary" onClick={handleBetClick}>BET</Button>
+        <Button className={buttonCss} type="primary" onClick={handleCancelClick}>CANCEL</Button>
       </div>
       <div className='flex justify-around gap-4 mt-6'>
         <CheckAndCallButton />

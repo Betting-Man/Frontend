@@ -12,7 +12,7 @@ export default function ScoreBoard() {
     const requiredCallScore = useSelector((state: RootState) => state.single.requiredCallScore);
 
     return (
-        <div className="p-2 flex items-center">
+        <div id='score_board' className="p-2 flex items-center">
             <div className='flex-grow flex flex-col items-center'>
                 <h1 className='text-2xl text-white sm:text-3xl'>Round Score : {roundScore}</h1>
                 <h1 className='text-lg text-gray-300 sm:text-xl'>The Calling Amount : {requiredCallScore}</h1>
