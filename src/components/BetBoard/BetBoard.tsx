@@ -10,9 +10,9 @@ const buttonCss = "h-11 min-w-0 grow px-2 tall:h-12 tall:text-lg active:scale-95
 
 export default function BetBoard() {
   const dispatch = useDispatch();
-  // 참가자는 자기 턴에만 누를 수 있다. 방장은 자리를 비운 사람 대신 누를 수 있게 막지 않는다.
+  // 멀티플레이에서는 방장도 참가자도 자기 턴에만 누를 수 있다
   const disabled = useSelector((state: RootState) =>
-    state.multi.role === "guest" && state.multi.seat !== state.single.userTurnOrder[0]
+    state.multi.role !== "local" && state.multi.seat !== state.single.userTurnOrder[0]
   );
 
   return (
