@@ -35,7 +35,7 @@ export default function SingleWinnerModal({ isModalOpen,setIsModalOpen }: Props)
     const users=useSelector((state : RootState) => state.single.users);
 
     return (
-        <GameDialog title="Select Winner" open={isModalOpen} okText='Select' onOk={handleOk} onClose={() => setIsModalOpen(false)}>
+        <GameDialog title="승자 선택" open={isModalOpen} okText='선택' onOk={handleOk} onClose={() => setIsModalOpen(false)}>
             <div className="grid grid-cols-2 gap-4">
                 {users.map((user, index) => (
                     <button

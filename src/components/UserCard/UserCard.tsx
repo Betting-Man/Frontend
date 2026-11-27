@@ -1,6 +1,7 @@
 import { User as UserIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import React from 'react';
+import { behaviorText } from '../../features/single/behaviorText';
 import { User } from '../../features/single/singleSlice';
 import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 
@@ -24,7 +25,7 @@ export default function UserCard({ user, compact }: Props) {
             <div className={`absolute inset-0 rounded-md ${user.isTurn ? 'bg-accent' : 'bg-black/40'}`} />
             <p className='relative max-w-20 truncate font-medium'>{user.name}</p>
             {user.currentRoundBehavior !== 0 && (
-                <p className={`relative font-bold ${behaviorColor(user.currentRoundBehavior)}`}>{user.currentRoundBehavior}</p>
+                <p className={`relative font-bold ${behaviorColor(user.currentRoundBehavior)}`}>{behaviorText(user.currentRoundBehavior)}</p>
             )}
         </div>
     )
@@ -45,11 +46,11 @@ export default function UserCard({ user, compact }: Props) {
                         transition={{ type: 'spring', stiffness: 500, damping: 22 }}
                         className={`relative ml-auto text-xl font-bold ${behaviorColor(user.currentRoundBehavior)}`}
                     >
-                        {user.currentRoundBehavior}
+                        {behaviorText(user.currentRoundBehavior)}
                     </motion.p>
                 )}
             </AnimatePresence>
-            <p className='relative ml-auto font-bold'>Bet <AnimatedNumber value={user.currentRoundBet} /></p>
+            <p className='relative ml-auto font-bold'>베팅 <AnimatedNumber value={user.currentRoundBet} /></p>
         </div>
     )
 }

@@ -34,7 +34,7 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
     }
 
     return (
-        <GameDialog title="Setting For Player Name" okText={hasDuplicateName ? 'Duplicate Check' : 'Start'} open={isModalOpen} onOk={handleOk} onClose={() => setIsModalOpen(false)}>
+        <GameDialog title="플레이어 이름" okText={hasDuplicateName ? '중복 확인' : '시작'} open={isModalOpen} onOk={handleOk} onClose={() => setIsModalOpen(false)}>
             <div className='flex gap-4 py-3'>
                 <div className="flex flex-col w-1/2 gap-4">
                     {[...Array(leftUsers)].map((_, index) => (

@@ -1,3 +1,4 @@
+import { behaviorText } from "./behaviorText";
 import type { State } from "./singleSlice";
 
 // 상태가 바뀔 때 누가 무엇을 했는지 한 줄씩 알려 준다. 화면 위 알림에 쓴다.
@@ -24,9 +25,9 @@ export function describeEvents(before: State, after: State): string[] {
 	return changed.flatMap(({ user, was }) => {
 		const label = user.currentRoundBehavior;
 		if (user.currentRoundBet > was.currentRoundBet)
-			return [`${user.name} ${typeof label === "number" ? "BET" : label} ${user.currentRoundBet}`];
+			return [`${user.name} ${typeof label === "number" ? "베팅" : behaviorText(label)} ${user.currentRoundBet}`];
 		if (label !== was.currentRoundBehavior && (label === "CHECK" || label === "DIE"))
-			return [`${user.name} ${label}`];
+			return [`${user.name} ${behaviorText(label)}`];
 		return [];
 	});
 }

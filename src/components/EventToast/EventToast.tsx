@@ -6,7 +6,7 @@ import { describeEvents } from "../../features/single/events";
 
 const SHOW_MS = 2500;
 
-// 누가 베팅·콜·다이·충전했는지, 누가 이겼는지를 테이블 위쪽에 잠깐 띄운다
+// 누가 베팅·콜·다이·충전했는지, 누가 이겼는지를 잠깐 띄운다. 자리는 BetBoard 의 알림 칸이 정한다.
 export default function EventToast() {
     const single = useSelector((state: RootState) => state.single);
     const previous = useRef(single);
@@ -25,16 +25,16 @@ export default function EventToast() {
     }, [single]);
 
     return (
-        <div aria-live="polite" className="pointer-events-none absolute inset-x-0 top-1 flex flex-col items-center gap-1">
+        <div aria-live="polite" className="flex flex-col items-center gap-1">
             <AnimatePresence>
                 {toasts.map((toast) => (
                     <motion.p
                         key={toast.id}
                         layout
-                        initial={{ opacity: 0, y: -12 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="rounded-full bg-black/75 px-4 py-1 text-sm font-medium text-white shadow-md"
+                        className="rounded-lg bg-black/85 px-4 py-2 text-sm font-medium text-white shadow-lg"
                     >
                         {toast.text}
                     </motion.p>

@@ -51,24 +51,24 @@ export default function Host() {
             {role === 'host' ? (
                 <>
                     <Lobby />
-                    <Button variant="outline" className="h-11 w-full max-w-xs" onClick={share}>{copied ? 'Link Copied!' : 'Share Invite Link'}</Button>
+                    <Button variant="outline" className="h-11 w-full max-w-xs" onClick={share}>{copied ? '링크를 복사했어요' : '초대 링크 공유'}</Button>
                     <Button className="h-12 w-full max-w-xs" disabled={players.length < 2} onClick={startRoom}>
-                        {players.length < 2 ? 'Waiting for players…' : `Start with ${players.length} players`}
+                        {players.length < 2 ? '참가자를 기다리는 중…' : `${players.length}명으로 시작`}
                     </Button>
-                    <Button variant="ghost" className="h-11" onClick={close}>Close Room</Button>
+                    <Button variant="ghost" className="h-11" onClick={close}>방 닫기</Button>
                 </>
             ) : (
                 <form onSubmit={create} className="flex w-full max-w-xs flex-col gap-4">
-                    <h1 className="text-2xl font-semibold">Create Room</h1>
+                    <h1 className="text-2xl font-semibold">방 만들기</h1>
                     <div className="flex flex-col gap-3 rounded-xl bg-card p-4">
                         <label className="flex flex-col gap-1 text-sm text-muted-foreground">
-                            Your Name
-                            <Input autoFocus className="h-11 bg-background text-base text-foreground" placeholder="Up to 8 characters" value={name} maxLength={8} enterKeyHint="done" onChange={(e) => setName(e.target.value)} />
+                            이름
+                            <Input autoFocus className="h-11 bg-background text-base text-foreground" placeholder="8자까지" value={name} maxLength={8} enterKeyHint="done" onChange={(e) => setName(e.target.value)} />
                         </label>
                         <ScoreSettingFields onChange={setSetting} />
                     </div>
-                    <Button type="submit" size="lg" className="h-12 w-full" disabled={!name.trim()}>Create Room</Button>
-                    <Button type="button" variant="ghost" className="h-11" onClick={() => navigate('/')}>Back</Button>
+                    <Button type="submit" size="lg" className="h-12 w-full" disabled={!name.trim()}>방 만들기</Button>
+                    <Button type="button" variant="ghost" className="h-11" onClick={() => navigate('/')}>뒤로</Button>
                 </form>
             )}
         </motion.div>

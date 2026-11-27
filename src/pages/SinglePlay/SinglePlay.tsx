@@ -7,7 +7,6 @@ import Header from '../../components/Header/Header'
 import ScoreBoard from '../../components/ScoreBoard/ScoreBoard'
 import UserCard from '../../components/UserCard/UserCard'
 import BetBoard from '../../components/BetBoard/BetBoard'
-import EventToast from '../../components/EventToast/EventToast'
 import { restoreRoom } from '../../features/multi/room';
 
 // 3D 라이브러리는 게임 화면에 들어올 때만 불러온다
@@ -36,12 +35,9 @@ export default function SinglePlay() {
         <Header/>
         <ScoreBoard/>
         {/* 다른 사람은 3D 테이블에 둘러앉고, 화면 주인은 베팅 버튼 바로 위에 크게 */}
-        <div className={`relative ${tableCss}`}>
-          <Suspense fallback={null}>
-            <BetTable3D className="size-full" />
-          </Suspense>
-          <EventToast />
-        </div>
+        <Suspense fallback={<div className={tableCss} />}>
+          <BetTable3D className={tableCss} />
+        </Suspense>
         {me && <UserCard user={me}/>}
         <BetBoard/>
     </motion.div>

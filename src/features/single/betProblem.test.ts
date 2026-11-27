@@ -57,14 +57,14 @@ test("남은 칩 이상을 고르면 올인으로 바뀐다고 알려 준다", (
 	expect(betProblem(play([600, 5000], []), "chip", 1000)).toBe("남은 칩이 550이라 올인으로 바뀌었어요.");
 });
 
-test("올인을 고른 뒤 칩을 누르면 CANCEL 을 안내한다", () => {
-	expect(betProblem(play([5000, 5000], [AllIn()]), "chip", 100)).toContain("CANCEL");
+test("올인을 고른 뒤 칩을 누르면 취소를 안내한다", () => {
+	expect(betProblem(play([5000, 5000], [AllIn()]), "chip", 100)).toContain("취소");
 });
 
 test("베팅할 사람이 없으면 승자를 고르라고 알려 준다", () => {
 	// 둘 다 올인하면 더 베팅할 사람이 없다
 	const state = play([5000, 5000], [AllIn(), betScore(), AllIn(), betScore()]);
-	expect(betProblem(state, "other")).toContain("Win");
+	expect(betProblem(state, "other")).toContain("승자 선택");
 });
 
 test("콜한 사람이 레이즈를 받고 다시 칩을 고를 수 있다", () => {

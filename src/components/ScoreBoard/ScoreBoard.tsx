@@ -17,11 +17,11 @@ export default function ScoreBoard() {
     return (
         <div id='score_board' className="p-2 flex items-center">
             <div className='flex-grow flex flex-col items-center'>
-                <h1 className='text-2xl sm:text-3xl'>Round Score : <b><AnimatedNumber value={roundScore} /></b></h1>
-                <h1 className='text-lg text-muted-foreground sm:text-xl'>The Calling Amount : <AnimatedNumber value={requiredCallScore} /></h1>
+                <h1 className='text-2xl sm:text-3xl'>팟 <b><AnimatedNumber value={roundScore} /></b></h1>
+                <h1 className='text-lg text-muted-foreground sm:text-xl'>콜 금액 <AnimatedNumber value={requiredCallScore} /></h1>
             </div>
 
-            {!isGuest && <Button className="ml-auto" onClick={() => setIsModalOpen(true)}>Win</Button>}
+            {!isGuest && <Button className="ml-auto" onClick={() => setIsModalOpen(true)}>승자 선택</Button>}
             {isModalOpen && <SingleWinnerModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} />}
         </div>
     )

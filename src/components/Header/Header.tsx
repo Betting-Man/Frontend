@@ -19,19 +19,19 @@ export default function Header() {
 
   return (
     <div id="header" className="flex items-center justify-between p-3">
-      <Button onClick={() => setIsResultModalOpen(true)} >Result</Button>
+      <Button onClick={() => setIsResultModalOpen(true)} >결과</Button>
       <div className="flex flex-col items-center">
-        <h1 className="text-lg sm:text-2xl">Round - {round}</h1>
+        <h1 className="text-lg sm:text-2xl">{round}라운드</h1>
         {role !== 'local' && (
           <p className="text-xs text-muted-foreground">
-            Room {code}{status !== 'connected' && ' · Reconnecting…'}
+            방 {code}{status !== 'connected' && ' · 다시 연결 중…'}
           </p>
         )}
       </div>
       <div className="flex gap-2">
-        <Button onClick={() => setIsSettingModalOpen(true)}>Setting</Button>
+        <Button onClick={() => setIsSettingModalOpen(true)}>설정</Button>
         {/* 멀티플레이에서는 각자 자기 돈을 충전한다 */}
-        <Button variant="outline" size="icon" aria-label="Recharge" onClick={() => setIsMoneyModalOpen(true)}><Plus /></Button>
+        <Button variant="outline" size="icon" aria-label="충전" onClick={() => setIsMoneyModalOpen(true)}><Plus /></Button>
       </div>
 
       {isResultModalOpen && <SingleResultModal isModalOpen={isResultModalOpen} setIsModalOpen={setIsResultModalOpen} />}

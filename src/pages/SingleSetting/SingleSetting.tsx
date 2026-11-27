@@ -21,9 +21,9 @@ export function Stepper({ label, value, options, onChange, disabled }: StepperPr
         <div className="flex items-center justify-between gap-2">
             <div className="text-sm text-muted-foreground">{label}</div>
             <div className="flex items-center gap-1">
-                <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Decrease" disabled={disabled || index <= 0} onClick={() => onChange(options[index - 1])}><Minus /></Button>
+                <Button type="button" variant="outline" size="icon" className="size-11" aria-label="줄이기" disabled={disabled || index <= 0} onClick={() => onChange(options[index - 1])}><Minus /></Button>
                 <p className={`w-16 text-center text-xl font-bold tabular-nums ${disabled ? 'opacity-40' : ''}`}>{value}</p>
-                <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Increase" disabled={disabled || index >= options.length - 1} onClick={() => onChange(options[index + 1])}><Plus /></Button>
+                <Button type="button" variant="outline" size="icon" className="size-11" aria-label="늘리기" disabled={disabled || index >= options.length - 1} onClick={() => onChange(options[index + 1])}><Plus /></Button>
             </div>
         </div>
     )
@@ -43,12 +43,12 @@ export function ScoreSettingFields({ onChange }: { onChange: (setting: ScoreSett
 
     return (
         <>
-            <Stepper label="Starting Chips" value={initialScore} options={initialScoreOptions} onChange={setInitialScore} />
+            <Stepper label="시작 칩" value={initialScore} options={initialScoreOptions} onChange={setInitialScore} />
             <Stepper
                 label={
                     <label className="flex items-center gap-2 py-2">
                         <Checkbox checked={isInitialBet} onCheckedChange={(checked) => setIsInitialBet(checked === true)} />
-                        Initial Bet
+                        초기 베팅
                     </label>
                 }
                 value={initialBet} options={initialBetOptions} onChange={setInitialBet} disabled={!isInitialBet}
@@ -68,12 +68,12 @@ export default function Single() {
     return (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex h-full flex-col items-center justify-center gap-4 overflow-y-auto p-6">
             <div className="flex w-full max-w-xs flex-col gap-4">
-                <h1 className="text-2xl font-semibold">Single Device</h1>
+                <h1 className="text-2xl font-semibold">한 기기로 하기</h1>
                 <div className="flex flex-col gap-3 rounded-xl bg-card p-4">
-                    <Stepper label="Players" value={numberOfUser} options={userCountOptions} onChange={setNumberOfUser} />
+                    <Stepper label="인원" value={numberOfUser} options={userCountOptions} onChange={setNumberOfUser} />
                     <ScoreSettingFields onChange={setSetting} />
                 </div>
-                <Button size="lg" className="h-12 w-full" onClick={() => setIsModalOpen(true)}>Next</Button>
+                <Button size="lg" className="h-12 w-full" onClick={() => setIsModalOpen(true)}>다음</Button>
                 {isModalOpen && <SingleBeginModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} userCount={numberOfUser} initialBet={setting.initialBet} initialScore={setting.initialScore} />}
             </div>
         </motion.div>

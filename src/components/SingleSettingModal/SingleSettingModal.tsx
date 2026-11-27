@@ -8,7 +8,7 @@ type Props = {
 
 export default function SingleSettingModal({isModalOpen, setIsModalOpen}: Props) {
   return (
-    <GameDialog title="Setting" okText="Save" onOk={() => setIsModalOpen(false)} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+    <GameDialog title="설정" okText="저장" onOk={() => setIsModalOpen(false)} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <div className="flex flex-col gap-4">
             <p>세팅창</p>
         </div>

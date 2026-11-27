@@ -27,20 +27,20 @@ beforeEach(() => {
 
 test("칩을 고르는 동안에는 알리지 않고, BET 하면 건 금액을 알린다", () => {
 	expect(act(incrementUserCurrentRoundBehavior(500))).toEqual([]);
-	expect(act(betScore())).toEqual(["Hana BET 550"]);
+	expect(act(betScore())).toEqual(["Hana 베팅 550"]);
 });
 
 test("콜·체크·다이·올인을 알린다", () => {
 	act(incrementUserCurrentRoundBehavior(500));
 	act(betScore());
-	expect(act(CheckOrCall())).toEqual(["Duri CALL 550"]);
-	expect(act(dieUser())).toEqual(["Sena DIE"]);
+	expect(act(CheckOrCall())).toEqual(["Duri 콜 550"]);
+	expect(act(dieUser())).toEqual(["Sena 다이"]);
 	act(AllIn());
-	expect(act(betScore())).toEqual(["Hana ALL-IN 5000"]);
+	expect(act(betScore())).toEqual(["Hana 올인 5000"]);
 });
 
 test("체크를 알린다", () => {
-	expect(act(CheckOrCall())).toEqual(["Hana CHECK"]);
+	expect(act(CheckOrCall())).toEqual(["Hana 체크"]);
 });
 
 test("승자와 딴 금액을 알린다", () => {

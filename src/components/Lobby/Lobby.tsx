@@ -9,17 +9,17 @@ export default function Lobby() {
 
     return (
         <div className="flex w-full max-w-xs flex-col items-center gap-4">
-            <p className="text-muted-foreground">Room Code</p>
+            <p className="text-muted-foreground">방 코드</p>
             <p className="font-mono text-5xl font-bold tracking-widest">{code}</p>
             <p className="text-sm text-muted-foreground">
-                {status === 'connected' ? `Players ${players.length} / 8` : 'Connecting…'}
+                {status === 'connected' ? `참가자 ${players.length} / 8` : '연결 중…'}
             </p>
             <ul className="flex w-full flex-col gap-2">
                 {players.map((name, index) => (
                     <li key={name} className="flex items-center gap-2 rounded-md bg-card p-3">
                         <UserIcon className={`size-5 ${seat === index ? 'text-primary' : ''}`} />
                         {name}
-                        {index === 0 && <span className="ml-auto text-xs text-muted-foreground">Host</span>}
+                        {index === 0 && <span className="ml-auto text-xs text-muted-foreground">방장</span>}
                     </li>
                 ))}
             </ul>

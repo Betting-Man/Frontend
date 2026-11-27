@@ -45,9 +45,9 @@ export default function SingleChargeModal({ isModalOpen, setIsModalOpen }: Props
     };
 
     return (
-        <GameDialog title="Recharge Score" okText="Recharge" onOk={handleOk} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <GameDialog title="충전" okText="충전하기" onOk={handleOk} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
             <div className="my-3">
-                <Stepper label="Amount" value={amount} options={amountOptions} onChange={setAmount} />
+                <Stepper label="금액" value={amount} options={amountOptions} onChange={setAmount} />
             </div>
             {seat !== null ? (
                 <p className="text-center text-sm text-muted-foreground">

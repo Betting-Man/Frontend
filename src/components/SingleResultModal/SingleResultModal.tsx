@@ -37,14 +37,14 @@ export default function SingleResultModal({ isModalOpen, setIsModalOpen, }: Prop
     }
 
     return (
-        <GameDialog title="Game Result" okText="Exit" onOk={handleExitClick} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <GameDialog title="게임 결과" okText="나가기" onOk={handleExitClick} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
             <table className="w-full text-right tabular-nums">
                 <thead>
                     <tr className="text-xs text-muted-foreground">
-                        <th className="py-1 text-left font-normal">Player</th>
-                        <th className="font-normal">Buy-in</th>
-                        <th className="font-normal">Now</th>
-                        <th className="font-normal">Net</th>
+                        <th className="py-1 text-left font-normal">이름</th>
+                        <th className="font-normal">넣은 돈</th>
+                        <th className="font-normal">현재</th>
+                        <th className="font-normal">손익</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,7 +59,7 @@ export default function SingleResultModal({ isModalOpen, setIsModalOpen, }: Prop
                 </tbody>
                 <tfoot>
                     <tr className="border-t border-border text-xs text-muted-foreground">
-                        <td className="py-2 text-left" colSpan={3}>Total</td>
+                        <td className="py-2 text-left" colSpan={3}>합계</td>
                         <td>{signed(total)}</td>
                     </tr>
                 </tfoot>

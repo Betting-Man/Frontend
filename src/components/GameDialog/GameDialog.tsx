@@ -21,7 +21,7 @@ export default function GameDialog({ title, open, onClose, okText, onOk, childre
                 </DialogHeader>
                 {children}
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button variant="outline" onClick={onClose}>취소</Button>
                     <Button onClick={onOk}>{okText}</Button>
                 </DialogFooter>
             </DialogContent>

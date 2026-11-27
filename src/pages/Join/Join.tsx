@@ -31,7 +31,7 @@ export default function Join() {
             {isJoined ? (
                 <>
                     <Lobby />
-                    <p className="text-muted-foreground">Waiting for the host to start…</p>
+                    <p className="text-muted-foreground">방장이 시작하기를 기다리는 중…</p>
                 </>
             ) : (
                 <form
@@ -42,20 +42,20 @@ export default function Join() {
                         joinRoom(code, name);
                     }}
                 >
-                    <h1 className="text-2xl font-semibold">Join Room</h1>
+                    <h1 className="text-2xl font-semibold">방 참가</h1>
                     <div className="flex flex-col gap-3 rounded-xl bg-card p-4">
                         <label className="flex flex-col gap-1 text-sm text-muted-foreground">
-                            Room Code
-                            <Input className="h-11 bg-background text-center font-mono text-xl uppercase tracking-widest text-foreground" placeholder="6 letters" value={code} maxLength={6} autoCapitalize="characters" autoComplete="off" onChange={(e) => setCode(e.target.value.toUpperCase())} />
+                            방 코드
+                            <Input className="h-11 bg-background text-center font-mono text-xl uppercase tracking-widest text-foreground" placeholder="6자리" value={code} maxLength={6} autoCapitalize="characters" autoComplete="off" onChange={(e) => setCode(e.target.value.toUpperCase())} />
                         </label>
                         <label className="flex flex-col gap-1 text-sm text-muted-foreground">
-                            Your Name
-                            <Input className="h-11 bg-background text-base text-foreground" placeholder="Up to 8 characters" value={name} maxLength={8} enterKeyHint="done" onChange={(e) => setName(e.target.value)} />
+                            이름
+                            <Input className="h-11 bg-background text-base text-foreground" placeholder="8자까지" value={name} maxLength={8} enterKeyHint="done" onChange={(e) => setName(e.target.value)} />
                         </label>
                     </div>
                     {multi.error && <p role="alert" className="text-center text-destructive">{multi.error}</p>}
-                    <Button type="submit" size="lg" className="h-12 w-full" disabled={code.length !== 6 || !name.trim()}>Join</Button>
-                    <Button type="button" variant="ghost" className="h-11" onClick={() => navigate('/')}>Back</Button>
+                    <Button type="submit" size="lg" className="h-12 w-full" disabled={code.length !== 6 || !name.trim()}>참가</Button>
+                    <Button type="button" variant="ghost" className="h-11" onClick={() => navigate('/')}>뒤로</Button>
                 </form>
             )}
         </motion.div>
