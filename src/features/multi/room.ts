@@ -1,12 +1,10 @@
 import type { Middleware, UnknownAction } from "@reduxjs/toolkit";
-import mqtt, { type MqttClient } from "mqtt";
 import { type State, replaceState, startGame } from "../single/singleSlice";
 import { isAllowed } from "./isAllowed";
 import { type MultiState, resetMulti, setMulti } from "./multiSlice";
 
-// 방장 브라우저가 서버 역할을 한다. 방장과 참가자는 공개 MQTT 브로커를 거쳐 메시지를 주고받는다.
+// 방장 브라우저가 게임 상태를 갖는다. 방장과 참가자는 Cloudflare Worker(server/room.js)를 거쳐 메시지를 주고받는다.
 // WebRTC 직접 연결은 TURN 서버 없이는 폰에서 실패해서 쓰지 않는다.
-// shortcut: 공개 브로커라 방 코드를 아는 사람은 메시지를 읽고 흉내 낼 수 있다, 돈이 걸리면 인증이 있는 자체 서버로 바꾼다
 
 type Settings = { initialScore: number; initialBet: number };
 type HostSave = Settings & {
@@ -14,6 +12,7 @@ type HostSave = Settings & {
 	players: string[];
 	started: boolean;
 	single: State;
+	secret: string;
 };
 type GuestSave = { code: string; name: string };
 type Message =
@@ -30,15 +29,14 @@ type Store = {
 	subscribe(listener: () => void): unknown;
 };
 
-const BROKER = "wss://broker.emqx.io:8084/mqtt";
+const SERVER = import.meta.env.VITE_ROOM_SERVER ?? "wss://betting-man-room.rhljh7410.workers.dev";
 const HOST_KEY = "bm-host";
 const GUEST_KEY = "bm-guest";
 const MAX_PLAYERS = 8;
 
 let store: Store;
-let client: MqttClient | null = null;
-let topic = ""; // betting-man/<방 코드>
-let bye: [path: string, message: Message] | null = null; // 나갈 때 남기는 메시지
+let socket: WebSocket | null = null;
+let secret = ""; // 방장: 서버가 방장을 알아보는 값
 let settings: Settings = { initialScore: 0, initialBet: 0 };
 const guestPeers = new Map<string, string>(); // 방장: 이름 → 참가자 id
 
@@ -50,56 +48,49 @@ const load = <T,>(key: string): T | null => {
 	}
 };
 
-// 토픽: host(참가자 → 방장), guest/<id>(방장 → 참가자), up(방장의 입장·퇴장 알림)
-const publish = (path: string, message: Message & { from?: string }) =>
-	client?.publish(`${topic}/${path}`, JSON.stringify(message), { qos: 1 });
-
-const send = (message: Message, target: string) => publish(`guest/${target}`, message);
-const sendToHost = (message: Message) => publish("host", { ...message, from: me });
+// 방장 → 참가자 한 명. 참가자 → 방장은 서버가 보낸 사람(from)을 붙여 전한다.
+const send = (message: Message, target: string) =>
+	socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify({ ...message, to: target }));
+const sendToHost = (message: Message) =>
+	socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify(message));
 
 function closeRoom() {
-	if (bye) publish(...bye);
-	client?.end();
-	client = null;
-	bye = null;
+	const old = socket;
+	socket = null; // 먼저 비워야 close 이벤트가 다시 붙지 않는다
+	old?.close();
 	guestPeers.clear();
 }
 
-// 방 코드의 토픽을 구독한다. 이전 방은 떠난다. 연결이 끊기면 mqtt 가 알아서 다시 붙는다.
+// 방 코드의 서버 방에 붙는다. 이전 방은 떠난다. 끊기면 1초 뒤 다시 붙는다.
 function openRoom(
 	code: string,
-	listen: string[],
-	last: [path: string, message: Message & { from?: string }],
+	query: string,
 	onConnect: () => void,
 	onMessage: (message: Message & { from?: string }) => void
 ) {
 	closeRoom();
-	topic = `betting-man/${code}`;
-	bye = last;
-	// will: 탭을 닫거나 새로고침해서 인사 없이 끊기면 브로커가 대신 보낸다
-	const current = mqtt.connect(BROKER, {
-		will: { topic: `${topic}/${last[0]}`, payload: JSON.stringify(last[1]), qos: 1, retain: false },
-	});
-	client = current;
-	current.on("connect", () =>
-		current.subscribe(
-			listen.map((path) => `${topic}/${path}`),
-			{ qos: 1 },
-			onConnect
-		)
-	);
-	current.on(
-		"close",
-		() => client === current && store.dispatch(setMulti({ status: "connecting" }))
-	);
-	current.on("error", (error) => console.warn("[room]", error));
-	current.on("message", (_topic, payload) => {
-		try {
-			onMessage(JSON.parse(payload.toString()));
-		} catch {
-			// 남이 보낸 깨진 메시지는 버린다
-		}
-	});
+	const connect = () => {
+		const current = new WebSocket(`${SERVER}/room/${code}?id=${me}${query}`);
+		socket = current;
+		// 폰이 잠들었다 깨면 끊긴 줄 모르는 연결이 남는다. ping 을 보내 끊김을 드러낸다.
+		const ping = setInterval(() => current.readyState === WebSocket.OPEN && current.send("ping"), 30_000);
+		current.onopen = onConnect;
+		current.onmessage = ({ data }) => {
+			if (data === "pong") return;
+			try {
+				onMessage(JSON.parse(data));
+			} catch {
+				// 깨진 메시지는 버린다
+			}
+		};
+		current.onclose = () => {
+			clearInterval(ping);
+			if (socket !== current) return;
+			store.dispatch(setMulti({ status: "connecting" }));
+			setTimeout(() => socket === current && connect(), 1000);
+		};
+	};
+	connect();
 }
 
 // 헷갈리는 글자(0/O, 1/I)를 뺀 6자리 방 코드
@@ -133,6 +124,7 @@ function broadcast() {
 		players: multi.players,
 		started: multi.started,
 		single,
+		secret,
 	};
 	localStorage.setItem(HOST_KEY, JSON.stringify(save));
 }
@@ -186,12 +178,9 @@ function onGuestLeave(id: string) {
 function openHostRoom(code: string) {
 	openRoom(
 		code,
-		["host"],
-		["up", { t: "down" }],
-		() => {
-			store.dispatch(setMulti({ status: "connected", error: null }));
-			publish("up", { t: "up" }); // 먼저 와 있던 참가자가 다시 참가를 알리게 한다
-		},
+		`&host=${secret}`,
+		// 서버가 먼저 와 있던 참가자에게 방장이 왔다고 알리고, 참가자가 다시 참가를 알린다
+		() => store.dispatch(setMulti({ status: "connected", error: null })),
 		(message) => {
 			if (!message.from) return;
 			if (message.t === "leave") onGuestLeave(message.from);
@@ -204,6 +193,7 @@ function openHostRoom(code: string) {
 export function hostRoom(name: string, next: Settings, restore?: HostSave) {
 	const code = restore?.code ?? randomCode();
 	settings = next;
+	secret = restore?.secret ?? randomCode() + randomCode();
 	localStorage.removeItem(GUEST_KEY); // 한 브라우저는 한 방에서 한 역할만 한다
 	if (restore) store.dispatch(replaceState(restore.single));
 	store.dispatch(
@@ -230,7 +220,7 @@ export function startRoom() {
 
 function openGuestRoom(code: string, name: string) {
 	const join = () => sendToHost({ t: "join", name });
-	openRoom(code, [`guest/${me}`, "up"], ["host", { t: "leave", from: me }], join, (message) => {
+	openRoom(code, "", join, (message) => {
 		if (message.t === "up") join();
 		else if (message.t === "down") store.dispatch(setMulti({ status: "connecting" }));
 		else if (message.t === "sync") {

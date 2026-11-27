@@ -12,7 +12,17 @@ npm test
 
 같은 와이파이의 폰으로 확인하려면 `http://<컴퓨터 IP>:3000`을 여세요.
 
-멀티플레이는 방장 브라우저가 게임 상태를 갖고, 공개 MQTT 브로커(`broker.emqx.io`)가 방장과 참가자 사이의 메시지를 중계해요. 브로커 주소는 `src/features/multi/room.ts`의 `BROKER`에서 바꿀 수 있어요.
+멀티플레이는 방장 브라우저가 게임 상태를 갖고, Cloudflare Worker(`server/room.js`)가 방장과 참가자 사이의 메시지를 웹소켓으로 중계해요.
+
+## 배포하기
+
+Worker 하나가 화면(`dist`)과 방 서버를 함께 내보내요. 설정은 `wrangler.toml`에 있어요.
+
+```bash
+npx wrangler deploy   # 빌드한 뒤 https://betting-man-room.rhljh7410.workers.dev 에 배포
+```
+
+방 서버만 로컬에서 띄우려면 `npx wrangler dev`를 실행하고, 화면은 `VITE_ROOM_SERVER=ws://localhost:8787 npm run dev`로 띄우세요.
 
 ## 에셋 출처
 
