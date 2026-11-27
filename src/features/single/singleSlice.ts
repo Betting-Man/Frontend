@@ -138,6 +138,8 @@ export const singleSlice = createSlice({
 				user.currentScore += initialScore;
 				user.initialScore += initialScore;
 			});
+			// 라운드 중간에는 돈만 더한다. 턴과 걸린 금액은 건드리지 않는다.
+			if (state.isStartingRound) return;
 
 			// 돈 충전한 후에는 배열 다시 만들기
 			state.userTurnOrder = []; // 배열 초기화

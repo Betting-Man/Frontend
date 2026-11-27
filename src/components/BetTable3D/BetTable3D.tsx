@@ -305,7 +305,7 @@ function Table() {
 	const model = useChipModel();
 	const { users, seat, me, pending, hand } = useSeats();
 	const total = useSelector((state: RootState) => state.single.currentRoundTotalScore);
-	const previous = useRef({ bets: [] as number[], scores: [] as number[] });
+	const previous = useRef({ bets: [] as number[], scores: [] as number[], total: 0 });
 	const chips = (index: number) => chipsOf(index, seat, users.length);
 
 	// 직전 상태와 견줘 누가 걸었고 누가 땄는지 알아낸다
@@ -314,9 +314,12 @@ function Table() {
 	const scores = users.map((user) => user.currentScore);
 	const all = users.map((_, index) => index);
 	const bettors = all.filter((index) => bets[index] > (before.bets[index] ?? 0));
-	const winners = all.filter((index) => scores[index] > (before.scores[index] ?? Infinity));
+	// 팟이 줄면서 점수가 오른 사람이 승자다. 팟이 그대로면 충전이라 칩이 제자리에 생긴다.
+	const winners = all.filter(
+		(index) => total < before.total && scores[index] > (before.scores[index] ?? Infinity)
+	);
 	useEffect(() => {
-		previous.current = { bets, scores };
+		previous.current = { bets, scores, total };
 	});
 
 	return (

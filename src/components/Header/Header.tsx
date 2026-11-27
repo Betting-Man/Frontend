@@ -14,8 +14,6 @@ export default function Header() {
 
   // 라운드 상태 변수
   const round = useSelector((state: RootState) => state.single.round);
-  // 라운드 시작 여부 변수
-  const isStartingRound = useSelector((state: RootState) => state.single.isStartingRound);
   // 멀티플레이 방 정보
   const { role, code, status } = useSelector((state: RootState) => state.multi);
 
@@ -34,7 +32,7 @@ export default function Header() {
         <Button onClick={() => setIsSettingModalOpen(true)}>Setting</Button>
         {/* 충전은 참가자에게 보이지 않는다 */}
         {role !== 'guest' && (
-          <Button variant="outline" size="icon" aria-label="Recharge" onClick={() => setIsMoneyModalOpen(true)} disabled={isStartingRound}><Plus /></Button>
+          <Button variant="outline" size="icon" aria-label="Recharge" onClick={() => setIsMoneyModalOpen(true)}><Plus /></Button>
         )}
       </div>
 
