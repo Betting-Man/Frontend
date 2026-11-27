@@ -45,6 +45,21 @@ const initialState: State = {
 	hasDuplicateName: false, // 이름 중복 여부
 };
 
+// 헬퍼 함수: 라운드에 참여할 수 있는지 - 0점이면 초기 베팅이 0이어도 탈락
+function canPlay(user: User, initialBet: number) {
+	return user.currentScore > 0 && user.currentScore >= initialBet;
+}
+
+// 헬퍼 함수: 금액을 승자들에게 정수로 나눠주기 - 나머지는 첫 번째 승자에게
+function splitScore(users: User[], winnerIndexes: number[], amount: number) {
+	const share = Math.floor(amount / winnerIndexes.length);
+	winnerIndexes.forEach((index) => {
+		users[index].currentScore += share;
+	});
+	users[winnerIndexes[0]].currentScore +=
+		amount - share * winnerIndexes.length;
+}
+
 // 헬퍼 함수: 턴 넘기기 로직
 function turnOver(state: State) {
 	// 첫 번째 유저를 배열에서 제거하고 턴 종료
@@ -134,7 +149,7 @@ export const singleSlice = createSlice({
 				const user = state.users[value];
 				const initialBet = state.initialBet;
 
-				if (user.currentScore >= initialBet) {
+				if (canPlay(user, initialBet)) {
 					state.userTurnOrder.push(value); // 턴 다시 추가
 					user.isTurn = false; // 턴 내용 초기화
 					user.isDie = false; // 턴 내용 초기화
@@ -153,7 +168,7 @@ export const singleSlice = createSlice({
 			let survivedUserCount = 0;
 
 			state.users.forEach((user) => {
-				if (user.currentScore >= initialBet) {
+				if (canPlay(user, initialBet)) {
 					user.currentRoundBet = initialBet;
 					survivedUserCount++;
 				} else {
@@ -190,6 +205,10 @@ export const singleSlice = createSlice({
 			// 초기화
 			state.userTurnOrder = [];
 			state.userTurnStandard = [];
+			// 이전 게임 상태가 남지 않게 초기화
+			state.userTurnIndex = 0;
+			state.round = 1;
+			state.isStartingRound = false;
 			// 첫 번째 사용자의 이름과 객체 추가
 			state.userTurnStandard.push(0);
 
@@ -352,7 +371,9 @@ export const singleSlice = createSlice({
 						currentUser.currentRoundBet = currentUser.currentScore;
 
 						// 턴 넘기기
-						state.users[state.userTurnOrder[0]].isTurn = true;
+						if (state.userTurnOrder.length > 0) {
+							state.users[state.userTurnOrder[0]].isTurn = true;
+						}
 					} else {
 						// 해당 라운드 금액 추가
 						state.currentRoundTotalScore +=
@@ -391,13 +412,7 @@ export const singleSlice = createSlice({
 					// 현재 라운드 금액
 					const betScore = user.currentRoundBehavior + action.payload;
 					// 베팅한 금액이 유저가 가진 금액보다 많을 경우
-					if (betScore > user.currentScore) {
-						// user.currentRoundBehavior=user.currentScore - user.currentRoundBet;
-						user.currentRoundBehavior = "ALL-IN";
-					} else if (
-						betScore + user.currentRoundBet >
-						user.currentScore
-					) {
+					if (betScore + user.currentRoundBet >= user.currentScore) {
 						// user.currentRoundBehavior=user.currentScore - user.currentRoundBet;
 						user.currentRoundBehavior = "ALL-IN";
 					} else {
@@ -429,14 +444,8 @@ export const singleSlice = createSlice({
 
 			// 유저 모두 같은 금액을 걸었을 경우
 			if (allBetsAreEqual) {
-				// 나누어 줄 수의 크기를 계산합니다.
-				const scoreToAdd = totalScore / selectedUserIndexes.length;
-
 				// 이긴 유저들에 대해서 점수를 나눠서 추가합니다.
-				selectedUserIndexes.forEach((index: number) => {
-					const winner = users[index];
-					winner.currentScore += scoreToAdd;
-				});
+				splitScore(users, selectedUserIndexes, totalScore);
 
 				// 이기지 못한 유저들에 대해서 점수를 나눠서 뺍니다.
 				users.forEach((user) => {
@@ -466,16 +475,10 @@ export const singleSlice = createSlice({
 							(userRoundBets.length - i);
 
 						// 승자가 있는지 여부
-						let haveWinner: boolean = false;
-
-						for (let j = 0; j < userRoundBets.length; j++) {
-							if (currentBet <= users[j].currentRoundBet) {
-								if (selectedUserIndexes.includes(j)) {
-									haveWinner = true;
-									break;
-								}
-							}
-						}
+						const haveWinner = selectedUserIndexes.some(
+							(index) =>
+								users[index].currentRoundBet >= currentBet
+						);
 
 						// 승자가 있어야 수행
 						if (haveWinner) {
@@ -487,10 +490,7 @@ export const singleSlice = createSlice({
 									users[index].currentRoundBet >= currentBet
 							);
 
-							winnersInThisPot.forEach((winnerIndex) => {
-								users[winnerIndex].currentScore +=
-									potShare / winnersInThisPot.length;
-							});
+							splitScore(users, winnersInThisPot, potShare);
 
 							// 이전 베팅 금액 갱신
 							previousBet = currentBet;
@@ -546,7 +546,7 @@ export const singleSlice = createSlice({
 				const user = state.users[value];
 				const initialBet = state.initialBet;
 
-				if (user.currentScore >= initialBet) {
+				if (canPlay(user, initialBet)) {
 					state.userTurnOrder.push(value); // 턴 다시 추가
 					user.isTurn = false; // 턴 내용 초기화
 					user.isDie = false; // 턴 내용 초기화
@@ -594,7 +594,7 @@ export const singleSlice = createSlice({
 				totalScore += user.currentScore;
 				initialTotalScore += user.initialScore;
 
-				if (user.currentScore >= initialBet) {
+				if (canPlay(user, initialBet)) {
 					user.currentRoundBet = initialBet;
 					survivedUserCount++;
 				} else {
