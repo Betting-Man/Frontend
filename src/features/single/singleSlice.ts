@@ -51,6 +51,11 @@ function canPlay(user: User, initialBet: number) {
 }
 
 // 헬퍼 함수: 금액을 승자들에게 정수로 나눠주기 - 나머지는 첫 번째 승자에게
+// 충전할 수 있는 금액 - 가장 작은 칩(50) 단위, 한 번에 50,000 까지
+export const MAX_CHARGE = 50_000;
+export const isChargeAmount = (amount: unknown): amount is number =>
+	Number.isInteger(amount) && (amount as number) > 0 && (amount as number) % 50 === 0 && (amount as number) <= MAX_CHARGE;
+
 function splitScore(users: User[], winnerIndexes: number[], amount: number) {
 	const share = Math.floor(amount / winnerIndexes.length);
 	winnerIndexes.forEach((index) => {
@@ -131,12 +136,14 @@ export const singleSlice = createSlice({
 			state.initialScore = action.payload;
 		},
 		// 유저 돈 추가하기
-		incrementUserScore: (state, action: { payload: number[] }) => {
-			const initialScore = state.initialScore;
-			action.payload.forEach((index) => {
+		incrementUserScore: (state, action: { payload: { indexes: number[]; amount: number } }) => {
+			const { indexes, amount } = action.payload;
+			if (!isChargeAmount(amount)) return;
+			indexes.forEach((index) => {
 				const user = state.users[index];
-				user.currentScore += initialScore;
-				user.initialScore += initialScore;
+				if (!user) return;
+				user.currentScore += amount;
+				user.initialScore += amount; // 넣은 돈도 같이 늘려 결과 명세서의 손익이 변하지 않게 한다
 			});
 			// 라운드 중간에는 돈만 더한다. 턴과 걸린 금액은 건드리지 않는다.
 			if (state.isStartingRound) return;
@@ -412,6 +419,9 @@ export const singleSlice = createSlice({
 				state.isStartingRound = true;
 				// 해당 유저
 				const user = state.users[state.userTurnOrder[0]];
+				// 레이즈를 받아 턴이 다시 오면 이전 라벨(CHECK·CALL)이 남아 있다. 칩을 고르면 0부터 다시 센다.
+				if (typeof user.currentRoundBehavior !== "number" && user.currentRoundBehavior !== "ALL-IN")
+					user.currentRoundBehavior = 0;
 				if (typeof user.currentRoundBehavior === "number") {
 					// 현재 라운드 금액
 					const betScore = user.currentRoundBehavior + action.payload;

@@ -6,6 +6,8 @@ import {
 	betScore,
 	dieUser,
 	incrementUserCurrentRoundBehavior,
+	incrementUserScore,
+	isChargeAmount,
 	resetUserCurrentRoundBehavior,
 } from "../single/singleSlice";
 
@@ -24,7 +26,13 @@ export function isAllowed(
 	seat: number,
 	action: { type?: unknown; payload?: unknown }
 ) {
-	if (seat < 0 || state.userTurnOrder[0] !== seat) return false;
+	if (seat < 0) return false;
+	// 자기 돈 충전은 턴과 상관없이 받는다
+	if (action?.type === incrementUserScore.type) {
+		const { indexes, amount } = (action.payload ?? {}) as { indexes?: unknown; amount?: unknown };
+		return Array.isArray(indexes) && indexes.length === 1 && indexes[0] === seat && isChargeAmount(amount);
+	}
+	if (state.userTurnOrder[0] !== seat) return false;
 	if (typeof action?.type !== "string" || !BET_ACTIONS.includes(action.type))
 		return false;
 	if (action.type === incrementUserCurrentRoundBehavior.type)

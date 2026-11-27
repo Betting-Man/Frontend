@@ -15,7 +15,7 @@ const userCountOptions = [2, 3, 4, 5, 6, 7, 8];
 type StepperProps = { label: React.ReactNode, value: number, options: number[], onChange: (value: number) => void, disabled?: boolean }
 
 // 라벨과 −/+ 조절기 한 줄. 드롭다운과 달리 한 번 탭으로 값을 바꾼다.
-function Stepper({ label, value, options, onChange, disabled }: StepperProps) {
+export function Stepper({ label, value, options, onChange, disabled }: StepperProps) {
     const index = options.indexOf(value);
     return (
         <div className="flex items-center justify-between gap-2">

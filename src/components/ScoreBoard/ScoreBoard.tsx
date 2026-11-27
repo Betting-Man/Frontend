@@ -17,7 +17,7 @@ export default function ScoreBoard() {
     return (
         <div id='score_board' className="p-2 flex items-center">
             <div className='flex-grow flex flex-col items-center'>
-                <h1 className='text-2xl sm:text-3xl'>Round Score : <AnimatedNumber value={roundScore} /></h1>
+                <h1 className='text-2xl sm:text-3xl'>Round Score : <b><AnimatedNumber value={roundScore} /></b></h1>
                 <h1 className='text-lg text-muted-foreground sm:text-xl'>The Calling Amount : <AnimatedNumber value={requiredCallScore} /></h1>
             </div>
 

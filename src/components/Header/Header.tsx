@@ -30,10 +30,8 @@ export default function Header() {
       </div>
       <div className="flex gap-2">
         <Button onClick={() => setIsSettingModalOpen(true)}>Setting</Button>
-        {/* 충전은 참가자에게 보이지 않는다 */}
-        {role !== 'guest' && (
-          <Button variant="outline" size="icon" aria-label="Recharge" onClick={() => setIsMoneyModalOpen(true)}><Plus /></Button>
-        )}
+        {/* 멀티플레이에서는 각자 자기 돈을 충전한다 */}
+        <Button variant="outline" size="icon" aria-label="Recharge" onClick={() => setIsMoneyModalOpen(true)}><Plus /></Button>
       </div>
 
       {isResultModalOpen && <SingleResultModal isModalOpen={isResultModalOpen} setIsModalOpen={setIsResultModalOpen} />}

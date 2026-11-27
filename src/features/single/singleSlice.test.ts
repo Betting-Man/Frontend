@@ -139,7 +139,7 @@ test("K: 라운드 중간에 충전해도 턴과 베팅이 그대로다", () => 
 		incrementUserCurrentRoundBehavior(500),
 		betScore(), // 유저0 500 베팅, 유저1 턴
 	]);
-	const state = reducer(before, incrementUserScore([2]));
+	const state = reducer(before, incrementUserScore({ indexes: [2], amount: 5000 }));
 
 	expect(scores(state)).toEqual([5000, 5000, 10000]);
 	expect(state.userTurnOrder).toEqual(before.userTurnOrder);
@@ -183,7 +183,7 @@ test("L: 무작위로 여러 판을 해도 점수가 새거나 생기지 않는�
 				expect(all.every(Number.isInteger), label).toBe(true);
 				expect(Math.min(...all), label).toBeGreaterThanOrEqual(0);
 				expect(sum(all), label).toBe(sum(state.users.map((user) => user.initialScore)));
-			} else if (roll < 12) state = reducer(state, incrementUserScore([random(count)]));
+			} else if (roll < 12) state = reducer(state, incrementUserScore({ indexes: [random(count)], amount: 1000 * (1 + random(10)) }));
 			else if (roll < 40) state = reducer(state, incrementUserCurrentRoundBehavior([100, 500, 1000][random(3)]));
 			else if (roll < 55) state = reducer(state, betScore());
 			else if (roll < 80) state = reducer(state, CheckOrCall());
@@ -196,4 +196,11 @@ test("L: 무작위로 여러 판을 해도 점수가 새거나 생기지 않는�
 	// 시험이 비어 있지 않은지 확인한다
 	expect(settled).toBeGreaterThan(1000);
 	expect(uneven).toBeGreaterThan(100);
+});
+
+test("M: 충전 금액을 정할 수 있고, 잘못된 금액은 무시한다", () => {
+	const start = startGame([5000, 5000], 50);
+	expect(scores(reducer(start, incrementUserScore({ indexes: [1], amount: 2000 })))).toEqual([5000, 7000]);
+	for (const amount of [0, -1000, 75, 1.5, NaN, 10_000_000])
+		expect(scores(reducer(start, incrementUserScore({ indexes: [1], amount })))).toEqual([5000, 5000]);
 });

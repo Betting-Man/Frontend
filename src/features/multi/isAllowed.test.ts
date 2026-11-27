@@ -3,6 +3,7 @@ import reducer, {
 	betScore,
 	divideRoundScoreToWinner,
 	incrementUserCurrentRoundBehavior,
+	incrementUserScore,
 	startGame,
 } from "../single/singleSlice";
 import { isAllowed } from "./isAllowed";
@@ -42,4 +43,14 @@ test("베팅이 아닌 액션은 거부한다", () => {
 
 test("칩 버튼에 없는 금액은 거부한다", () => {
 	expect(isAllowed(state, 0, incrementUserCurrentRoundBehavior(-99999))).toBe(false);
+});
+
+test("자기 돈 충전은 턴이 아니어도 허용한다", () => {
+	expect(isAllowed(state, 1, incrementUserScore({ indexes: [1], amount: 3000 }))).toBe(true);
+});
+
+test("남의 돈 충전과 잘못된 금액은 거부한다", () => {
+	expect(isAllowed(state, 1, incrementUserScore({ indexes: [0], amount: 3000 }))).toBe(false);
+	expect(isAllowed(state, 1, incrementUserScore({ indexes: [1, 0], amount: 3000 }))).toBe(false);
+	expect(isAllowed(state, 1, incrementUserScore({ indexes: [1], amount: -3000 }))).toBe(false);
 });

@@ -26,7 +26,7 @@ type Chip = {
 };
 
 // 테이블: 가운데 뒤에 공용 팟, 가장 앞에 내 칩
-const POT = new THREE.Vector3(0, 0, -1);
+const POT = new THREE.Vector3(0, 0, 0.2);
 const HAND = new THREE.Vector3(0, 0, 2.6);
 // 내 칩은 5000 칩 한 개로 뭉치지 않게 1000 이하로만 쌓는다
 const HAND_VALUES = CHIP_VALUES.filter((value) => value < 5000);
@@ -394,7 +394,7 @@ function Camera({ onView }: { onView: (view: { camera: THREE.Camera }) => void }
 // 낮은 각도와 넓은 화각으로 테이블이 납작하고 넓어 보인다
 const FOV = 62;
 // 테이블 옆과 앞은 화면 밖으로 잘린다. 가까운 곳일수록 보이는 폭이 좁아 내 칩은 가운데에 모은다.
-const VIEW = { width: 7.4, height: 4.4, target: new THREE.Vector3(0, 0.5, 0.4), tilt: 15 };
+const VIEW = { width: 8.4, height: 5, target: new THREE.Vector3(0, 0.5, 1.2), tilt: 15 };
 
 // 타원 테이블 - 앞쪽은 화면 아래로 잘려 내가 테이블에 앉은 것처럼 보인다
 const Felt = () => (

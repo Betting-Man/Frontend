@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { User as UserIcon } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from "../../app/store";
-import { incrementUserScore } from '../../features/single/singleSlice';
+import { MAX_CHARGE, incrementUserScore } from '../../features/single/singleSlice';
+import { Stepper } from '../../pages/SingleSetting/SingleSetting';
 import GameDialog from "../GameDialog/GameDialog";
 
 type Props = {
     isModalOpen: boolean,
     setIsModalOpen: (isOpen: boolean) => void,
 }
+
+// 충전 금액 선택지 - 1000 단위
+const amountOptions = Array.from({ length: MAX_CHARGE / 1000 }, (_, index) => 1000 * (index + 1));
 
 export default function SingleChargeModal({ isModalOpen, setIsModalOpen }: Props) {
 
@@ -17,11 +21,16 @@ export default function SingleChargeModal({ isModalOpen, setIsModalOpen }: Props
 
     const users = useSelector((state: RootState) => state.single.users);
     const initialScore = useSelector((state: RootState) => state.single.initialScore);
+    // 멀티플레이에서는 자기 돈만 충전한다. 한 기기 모드(seat 없음)에서는 누구든 고른다.
+    const seat = useSelector((state: RootState) => state.multi.seat);
+    const [amount, setAmount] = useState(amountOptions.includes(initialScore) ? initialScore : 5000);
 
     const handleOk = () => {
-        if (selectedUserIndexes.length > 0) {
-            dispatch(incrementUserScore(selectedUserIndexes));
+        const indexes = seat === null ? selectedUserIndexes : [seat];
+        if (indexes.length > 0) {
+            dispatch(incrementUserScore({ indexes, amount }));
             setSelectedUserIndexes([]);
+            setIsModalOpen(false);
         }
     };
 
@@ -37,25 +46,33 @@ export default function SingleChargeModal({ isModalOpen, setIsModalOpen }: Props
 
     return (
         <GameDialog title="Recharge Score" okText="Recharge" onOk={handleOk} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <p className='my-3 flex justify-center text-xl'>Charge Amount : {initialScore}</p>
-            <div className="grid grid-cols-2 gap-4">
-                {users.map((user, index) => (
-                    <button
-                        key={index}
-                        aria-pressed={selectedUserIndexes.includes(index)}
-                        className={`flex cursor-pointer items-center rounded-md border p-4 transition-colors ${
-                            selectedUserIndexes.includes(index) ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                        }`}
-                        onClick={() => handleClick(index)}
-                    >
-                        <UserIcon className="mr-2 size-8" />
-                        <div className='flex flex-col items-center'>
-                            <p>{user.name}</p>
-                            <p>{user.currentScore}</p>
-                        </div>
-                    </button>
-                ))}
+            <div className="my-3">
+                <Stepper label="Amount" value={amount} options={amountOptions} onChange={setAmount} />
             </div>
+            {seat !== null ? (
+                <p className="text-center text-sm text-muted-foreground">
+                    {users[seat]?.name}: {users[seat]?.currentScore} → {(users[seat]?.currentScore ?? 0) + amount}
+                </p>
+            ) : (
+                <div className="grid grid-cols-2 gap-4">
+                    {users.map((user, index) => (
+                        <button
+                            key={index}
+                            aria-pressed={selectedUserIndexes.includes(index)}
+                            className={`flex cursor-pointer items-center rounded-md border p-4 transition-colors ${
+                                selectedUserIndexes.includes(index) ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                            }`}
+                            onClick={() => handleClick(index)}
+                        >
+                            <UserIcon className="mr-2 size-8" />
+                            <div className='flex flex-col items-center'>
+                                <p>{user.name}</p>
+                                <p>{user.currentScore}</p>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            )}
         </GameDialog>
     )
 }
