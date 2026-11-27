@@ -13,7 +13,7 @@ export default function Join() {
     const navigate = useNavigate();
     const params = useParams();
     const [code, setCode] = useState(params.code ?? "");
-    const [name, setName] = useState("");
+    const [name, setName] = useState(() => localStorage.getItem("bm-name") ?? ""); // 지난번에 쓴 이름
     const multi = useSelector((state: RootState) => state.multi);
     const isJoined = multi.role === 'guest' && multi.status !== 'error';
 
@@ -34,18 +34,29 @@ export default function Join() {
                     <p className="text-muted-foreground">Waiting for the host to start…</p>
                 </>
             ) : (
-                <>
-                    <div className="flex flex-col items-center gap-1">
-                        <p className="text-3xl font-semibold">Room Code</p>
-                        <Input className="h-11 w-40 bg-card text-center font-mono uppercase tracking-widest" value={code} maxLength={6} autoCapitalize="characters" autoComplete="off" onChange={(e) => setCode(e.target.value.toUpperCase())} />
+                <form
+                    className="flex w-full max-w-xs flex-col gap-4"
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        localStorage.setItem("bm-name", name.trim());
+                        joinRoom(code, name);
+                    }}
+                >
+                    <h1 className="text-2xl font-semibold">Join Room</h1>
+                    <div className="flex flex-col gap-3 rounded-xl bg-card p-4">
+                        <label className="flex flex-col gap-1 text-sm text-muted-foreground">
+                            Room Code
+                            <Input className="h-11 bg-background text-center font-mono text-xl uppercase tracking-widest text-foreground" placeholder="6 letters" value={code} maxLength={6} autoCapitalize="characters" autoComplete="off" onChange={(e) => setCode(e.target.value.toUpperCase())} />
+                        </label>
+                        <label className="flex flex-col gap-1 text-sm text-muted-foreground">
+                            Your Name
+                            <Input className="h-11 bg-background text-base text-foreground" placeholder="Up to 8 characters" value={name} maxLength={8} enterKeyHint="done" onChange={(e) => setName(e.target.value)} />
+                        </label>
                     </div>
-                    <div className="flex flex-col items-center gap-1">
-                        <p className="text-3xl font-semibold">Your Name</p>
-                        <Input className="h-11 w-40 bg-card" value={name} maxLength={8} onChange={(e) => setName(e.target.value)} />
-                    </div>
-                    {multi.error && <p role="alert" className="text-destructive">{multi.error}</p>}
-                    <Button size="lg" className="h-11" disabled={code.length !== 6 || !name.trim()} onClick={() => joinRoom(code, name)}>Join</Button>
-                </>
+                    {multi.error && <p role="alert" className="text-center text-destructive">{multi.error}</p>}
+                    <Button type="submit" size="lg" className="h-12 w-full" disabled={code.length !== 6 || !name.trim()}>Join</Button>
+                    <Button type="button" variant="ghost" className="h-11" onClick={() => navigate('/')}>Back</Button>
+                </form>
             )}
         </motion.div>
     )

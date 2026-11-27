@@ -27,3 +27,4 @@ npx wrangler deploy   # 빌드한 뒤 https://betting-man-room.rhljh7410.workers
 ## 에셋 출처
 
 - `public/models/poker-chip.glb`: [Poker chip](https://poly.pizza/m/aSeRYpWIbqV) by Poly by Google, [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/). 빨간색 재질을 금액별 색으로 바꿔 써요.
+- `public/models/person.glb`: [Man](https://poly.pizza/m/HMnuH5geEG) by Quaternius, [CC0](https://creativecommons.org/publicdomain/zero/1.0/). 셔츠 재질을 사람별 색으로 바꿔 써요.

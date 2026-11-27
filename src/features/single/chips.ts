@@ -18,10 +18,11 @@ export const BET_AMOUNTS = [100, 500, 1000];
 export const MAX_CHIPS = 200;
 
 // 금액을 칩 금액 배열로 바꾼다 - 큰 금액부터 나눈다. 50 미만 나머지는 버린다
-export function toChips(amount: number): number[] {
+// values 로 쓸 칩 종류를 줄일 수 있다 (큰 금액부터)
+export function toChips(amount: number, values = CHIP_VALUES): number[] {
 	const chips: number[] = [];
 	let rest = amount;
-	for (const value of CHIP_VALUES) {
+	for (const value of values) {
 		while (rest >= value && chips.length < MAX_CHIPS) {
 			chips.push(value);
 			rest -= value;

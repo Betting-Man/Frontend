@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Minus, Plus } from "lucide-react";
 import SingleBeginModal from "../../components/SingleBeginModal/SingleBeginModal";
 import { leaveRoom } from "../../features/multi/room";
 
@@ -12,16 +12,20 @@ const initialScoreOptions = Array.from({ length: 10 }, (_, index) => 5000 * (ind
 const initialBetOptions = Array.from({ length: 10 }, (_, index) => 50 * (index + 1));
 const userCountOptions = [2, 3, 4, 5, 6, 7, 8];
 
-type NumberSelectProps = { value: number, options: number[], onChange: (value: number) => void, disabled?: boolean }
+type StepperProps = { label: React.ReactNode, value: number, options: number[], onChange: (value: number) => void, disabled?: boolean }
 
-function NumberSelect({ value, options, onChange, disabled }: NumberSelectProps) {
+// 라벨과 −/+ 조절기 한 줄. 드롭다운과 달리 한 번 탭으로 값을 바꾼다.
+function Stepper({ label, value, options, onChange, disabled }: StepperProps) {
+    const index = options.indexOf(value);
     return (
-        <Select value={String(value)} onValueChange={(next) => onChange(Number(next))} disabled={disabled}>
-            <SelectTrigger className="h-11 w-40 bg-card"><SelectValue /></SelectTrigger>
-            <SelectContent>
-                {options.map((option) => <SelectItem key={option} value={String(option)}>{option}</SelectItem>)}
-            </SelectContent>
-        </Select>
+        <div className="flex items-center justify-between gap-2">
+            <div className="text-sm text-muted-foreground">{label}</div>
+            <div className="flex items-center gap-1">
+                <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Decrease" disabled={disabled || index <= 0} onClick={() => onChange(options[index - 1])}><Minus /></Button>
+                <p className={`w-16 text-center text-xl font-bold tabular-nums ${disabled ? 'opacity-40' : ''}`}>{value}</p>
+                <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Increase" disabled={disabled || index >= options.length - 1} onClick={() => onChange(options[index + 1])}><Plus /></Button>
+            </div>
+        </div>
     )
 }
 
@@ -39,18 +43,16 @@ export function ScoreSettingFields({ onChange }: { onChange: (setting: ScoreSett
 
     return (
         <>
-            <div className="flex flex-col items-center gap-1">
-                <p className="text-3xl font-semibold">total Score</p>
-                <NumberSelect value={initialScore} options={initialScoreOptions} onChange={setInitialScore} />
-            </div>
-            <div className="flex flex-col items-center gap-1">
-                <p className="text-3xl font-semibold">Initial Bet</p>
-                <label className="flex items-center gap-2 py-1">
-                    <Checkbox checked={isInitialBet} onCheckedChange={(checked) => setIsInitialBet(checked === true)} />
-                    Use Initial Bet
-                </label>
-                <NumberSelect value={initialBet} options={initialBetOptions} onChange={setInitialBet} disabled={!isInitialBet} />
-            </div>
+            <Stepper label="Starting Chips" value={initialScore} options={initialScoreOptions} onChange={setInitialScore} />
+            <Stepper
+                label={
+                    <label className="flex items-center gap-2 py-2">
+                        <Checkbox checked={isInitialBet} onCheckedChange={(checked) => setIsInitialBet(checked === true)} />
+                        Initial Bet
+                    </label>
+                }
+                value={initialBet} options={initialBetOptions} onChange={setInitialBet} disabled={!isInitialBet}
+            />
         </>
     )
 }
@@ -64,18 +66,16 @@ export default function Single() {
     useEffect(() => leaveRoom(), []);
 
     return (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className='h-full flex items-center justify-center '>
-            <div className='flex flex-col items-center gap-4'>
-                <div className="flex flex-col items-center gap-1">
-                    <p className="text-3xl font-semibold">number of users</p>
-                    <NumberSelect value={numberOfUser} options={userCountOptions} onChange={setNumberOfUser} />
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex h-full flex-col items-center justify-center gap-4 overflow-y-auto p-6">
+            <div className="flex w-full max-w-xs flex-col gap-4">
+                <h1 className="text-2xl font-semibold">Single Device</h1>
+                <div className="flex flex-col gap-3 rounded-xl bg-card p-4">
+                    <Stepper label="Players" value={numberOfUser} options={userCountOptions} onChange={setNumberOfUser} />
+                    <ScoreSettingFields onChange={setSetting} />
                 </div>
-                <ScoreSettingFields onChange={setSetting} />
-
-                <Button size="lg" className="h-11" onClick={() => setIsModalOpen(true)}>Start</Button>
+                <Button size="lg" className="h-12 w-full" onClick={() => setIsModalOpen(true)}>Next</Button>
                 {isModalOpen && <SingleBeginModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} userCount={numberOfUser} initialBet={setting.initialBet} initialScore={setting.initialScore} />}
             </div>
         </motion.div>
-
     )
 }
