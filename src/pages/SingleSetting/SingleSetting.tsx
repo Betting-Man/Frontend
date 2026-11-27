@@ -48,7 +48,7 @@ export function ScoreSettingFields({ onChange }: { onChange: (setting: ScoreSett
                 label={
                     <label className="flex items-center gap-2 py-2">
                         <Checkbox checked={isInitialBet} onCheckedChange={(checked) => setIsInitialBet(checked === true)} />
-                        초기 베팅
+                        기본금
                     </label>
                 }
                 value={initialBet} options={initialBetOptions} onChange={setInitialBet} disabled={!isInitialBet}

@@ -1,4 +1,4 @@
-import { describeEvents } from "./events";
+import { NEEDS_WINNER, describeEvents, needsWinner } from "./events";
 import reducer, {
 	type State,
 	AllIn,
@@ -34,7 +34,8 @@ test("콜·체크·다이·올인을 알린다", () => {
 	act(incrementUserCurrentRoundBehavior(500));
 	act(betScore());
 	expect(act(CheckOrCall())).toEqual(["Duri 콜 550"]);
-	expect(act(dieUser())).toEqual(["Sena 다이"]);
+	// 남은 둘이 같은 금액을 걸었으므로 베팅이 끝났다
+	expect(act(dieUser())).toEqual(["Sena 다이", NEEDS_WINNER]);
 	act(AllIn());
 	expect(act(betScore())).toEqual(["Hana 올인 5000"]);
 });
@@ -54,4 +55,24 @@ test("충전을 알린다", () => {
 
 test("게임을 시작할 때는 알리지 않는다", () => {
 	expect(describeEvents(reducer(undefined, { type: "init" }), state)).toEqual([]);
+});
+
+test("모두 체크하면 승자를 선택하라고 한 번만 알린다", () => {
+	expect(needsWinner(state)).toBe(false); // 기본금만 낸 상태
+	act(CheckOrCall());
+	act(CheckOrCall());
+	expect(act(CheckOrCall())).toEqual(["Sena 체크", NEEDS_WINNER]);
+	expect(act(incrementUserCurrentRoundBehavior(100))).toEqual([]);
+});
+
+test("레이즈를 받은 사람이 남아 있으면 아직 알리지 않는다", () => {
+	act(CheckOrCall());
+	act(incrementUserCurrentRoundBehavior(500));
+	expect(act(betScore())).toEqual(["Duri 베팅 550"]);
+	expect(needsWinner(state)).toBe(false);
+});
+
+test("한 명만 남으면 승자를 선택하라고 알린다", () => {
+	act(dieUser());
+	expect(act(dieUser())).toEqual(["Duri 다이", NEEDS_WINNER]);
 });

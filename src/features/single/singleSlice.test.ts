@@ -204,3 +204,10 @@ test("M: 충전 금액을 정할 수 있고, 잘못된 금액은 무시한다", 
 	for (const amount of [0, -1000, 75, 1.5, NaN, 10_000_000])
 		expect(scores(reducer(start, incrementUserScore({ indexes: [1], amount })))).toEqual([5000, 5000]);
 });
+
+test("N: 무승부로 나누고 남는 돈은 승자 목록의 첫 사람이 받는다 (화면이 목록을 무작위로 섞어 보낸다)", () => {
+	// 판돈 1000 을 3명이 나누면 333 씩이고 1 이 남는다
+	const state = run(startGame([5000, 5000, 5000, 5000], 250), [divideRoundScoreToWinner([2, 0, 1])]);
+
+	expect(scores(state)).toEqual([5083, 5083, 5084, 4750]);
+});

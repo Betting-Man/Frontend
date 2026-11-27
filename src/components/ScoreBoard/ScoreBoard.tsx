@@ -17,7 +17,7 @@ export default function ScoreBoard() {
     return (
         <div id='score_board' className="p-2 flex items-center">
             <div className='flex-grow flex flex-col items-center'>
-                <h1 className='text-2xl sm:text-3xl'>팟 <b><AnimatedNumber value={roundScore} /></b></h1>
+                <h1 className='text-2xl sm:text-3xl'>판돈 <b><AnimatedNumber value={roundScore} /></b></h1>
                 <h1 className='text-lg text-muted-foreground sm:text-xl'>콜 금액 <AnimatedNumber value={requiredCallScore} /></h1>
             </div>
 
