@@ -30,13 +30,21 @@ const HOST_KEY = "bm-host";
 const GUEST_KEY = "bm-guest";
 const MAX_PLAYERS = 8;
 const RETRY_MS = 3000;
+const MAX_RETRY_MS = 30000;
 
 let store: Store;
 let peer: Peer | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
+let retryCount = 0;
 let settings: Settings = { initialScore: 0, initialBet: 0 };
 const guestConns = new Map<string, DataConnection>(); // 방장: 이름 → 연결
 let hostConn: DataConnection | null = null; // 참가자: 방장과의 연결
+
+// 다시 연결을 한 번만 예약한다. 중계 서버가 요청 수를 제한하므로 간격을 3초부터 30초까지 두 배씩 늘린다.
+function retryLater(run: () => void) {
+	clearTimeout(retryTimer);
+	retryTimer = setTimeout(run, Math.min(RETRY_MS * 2 ** retryCount++, MAX_RETRY_MS));
+}
 
 const load = <T,>(key: string): T | null => {
 	try {
@@ -130,17 +138,25 @@ function openHostPeer(code: string) {
 	peer?.destroy();
 	const current = new Peer(PEER_PREFIX + code);
 	peer = current;
-	current.on("open", () => store.dispatch(setMulti({ status: "connected", error: null })));
+	current.on("open", () => {
+		retryCount = 0;
+		store.dispatch(setMulti({ status: "connected", error: null }));
+	});
 	current.on("connection", (conn) =>
 		conn.on("data", (data) => onGuestMessage(conn, data as Message))
 	);
-	current.on("disconnected", () => !current.destroyed && current.reconnect());
-	current.on("error", (error) => {
-		// 새로고침 직후에는 중계 서버가 이전 ID 를 아직 쥐고 있을 수 있어 다시 시도한다
-		if (error.type !== "unavailable-id" && error.type !== "network") return;
+	// 중계 서버와 끊겨도 이미 붙은 참가자 연결은 살아 있다. 같은 ID 로 다시 등록만 한다.
+	current.on("disconnected", () => {
+		if (peer !== current || current.destroyed) return;
 		store.dispatch(setMulti({ status: "connecting" }));
-		clearTimeout(retryTimer);
-		retryTimer = setTimeout(() => peer === current && openHostPeer(code), RETRY_MS);
+		retryLater(() => peer === current && !current.destroyed && current.reconnect());
+	});
+	current.on("error", (error) => {
+		console.warn("[room] host", error.type, error.message);
+		// 새로고침 직후에는 중계 서버가 이전 ID 를 아직 쥐고 있을 수 있어 새로 연다
+		if (error.type !== "unavailable-id") return;
+		store.dispatch(setMulti({ status: "connecting" }));
+		retryLater(() => peer === current && openHostPeer(code));
 	});
 }
 
@@ -177,10 +193,11 @@ function connectGuest(code: string, name: string) {
 	const current = new Peer();
 	peer = current;
 	const retry = () => {
-		if (peer !== current || store.getState().multi.status === "error") return;
+		// 방장과의 연결이 살아 있으면 중계 서버 오류는 무시한다
+		if (peer !== current || hostConn?.open) return;
+		if (store.getState().multi.status === "error") return;
 		store.dispatch(setMulti({ status: "connecting" }));
-		clearTimeout(retryTimer);
-		retryTimer = setTimeout(() => peer === current && connectGuest(code, name), RETRY_MS);
+		retryLater(() => peer === current && connectGuest(code, name));
 	};
 	current.on("open", () => {
 		const conn = current.connect(PEER_PREFIX + code, { reliable: true });
@@ -189,6 +206,7 @@ function connectGuest(code: string, name: string) {
 		conn.on("data", (data) => {
 			const message = data as Message;
 			if (message.t === "sync") {
+				retryCount = 0;
 				store.dispatch(replaceState(message.single));
 				store.dispatch(
 					setMulti({
@@ -206,7 +224,10 @@ function connectGuest(code: string, name: string) {
 		});
 		conn.on("close", retry);
 	});
-	current.on("error", retry);
+	current.on("error", (error) => {
+		console.warn("[room] guest", error.type, error.message);
+		retry();
+	});
 }
 
 // 방 코드로 참가한다
@@ -247,6 +268,7 @@ export function restoreRoom(code?: string) {
 // 방에서 나간다. 저장된 방 정보도 지운다.
 export function leaveRoom() {
 	clearTimeout(retryTimer);
+	retryCount = 0;
 	peer?.destroy();
 	peer = null;
 	hostConn = null;
