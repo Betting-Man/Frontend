@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type Dispatch } from "@reduxjs/toolkit";
 
 // 유저 타입 정의
 export type User = {
@@ -102,6 +102,8 @@ export const singleSlice = createSlice({
 	name: "single",
 	initialState,
 	reducers: {
+		// 방장이 보낸 상태로 통째로 교체 - 멀티플레이 참가자·방장 복원용
+		replaceState: (_state, action: { payload: State }) => action.payload,
 		// 유저 수 상태 업데이트
 		setUserCount: (state, action) => {
 			state.userCount = action.payload;
@@ -624,6 +626,7 @@ export const singleSlice = createSlice({
 });
 
 export const {
+	replaceState,
 	setUserCount,
 	updateUserName,
 	resetUserCount,
@@ -650,3 +653,30 @@ export const {
 } = singleSlice.actions;
 
 export default singleSlice.reducer;
+
+// 게임 시작 - 한 기기 모드와 멀티플레이 방장이 같은 순서로 쓴다
+export function startGame(
+	dispatch: Dispatch,
+	names: string[],
+	initialScore: number,
+	initialBet: number
+) {
+	const { actions } = singleSlice;
+	dispatch(actions.setInitialBet(initialBet));
+	dispatch(
+		actions.setUsers(
+			names.map((name) => ({
+				name,
+				initialScore,
+				currentScore: initialScore,
+				isTurn: false,
+				currentRoundBet: initialBet,
+				currentRoundBehavior: 0,
+				isDie: false,
+			}))
+		)
+	);
+	dispatch(actions.setUserTurnOrder());
+	dispatch(actions.setInitialRoundSetting());
+	dispatch(actions.setInitialScore(initialScore));
+}

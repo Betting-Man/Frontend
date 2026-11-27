@@ -44,7 +44,7 @@ const scores = (state: State) => state.users.map((user) => user.currentScore);
 const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
 
 beforeEach(() => {
-	window.alert = jest.fn();
+	window.alert = vi.fn();
 });
 
 test("정상: 3인이 같은 금액을 콜하고 1명이 이기면 점수 합계가 보존된다", () => {
