@@ -1,11 +1,12 @@
 import type { Middleware, UnknownAction } from "@reduxjs/toolkit";
-import { type JsonValue, type MessageAction, type Room, joinRoom as openP2PRoom } from "trystero";
+import mqtt, { type MqttClient } from "mqtt";
 import { type State, replaceState, startGame } from "../single/singleSlice";
 import { isAllowed } from "./isAllowed";
 import { type MultiState, resetMulti, setMulti } from "./multiSlice";
 
-// 방장 브라우저가 서버 역할을 한다. 참가자는 Trystero(WebRTC)로 방장에 직접 붙는다.
-// 서로를 찾는 중계는 Trystero 가 여러 공개 릴레이에 나눠 맡긴다. 게임 데이터는 릴레이를 지나지 않는다.
+// 방장 브라우저가 서버 역할을 한다. 방장과 참가자는 공개 MQTT 브로커를 거쳐 메시지를 주고받는다.
+// WebRTC 직접 연결은 TURN 서버 없이는 폰에서 실패해서 쓰지 않는다.
+// shortcut: 공개 브로커라 방 코드를 아는 사람은 메시지를 읽고 흉내 낼 수 있다, 돈이 걸리면 인증이 있는 자체 서버로 바꾼다
 
 type Settings = { initialScore: number; initialBet: number };
 type HostSave = Settings & {
@@ -19,24 +20,27 @@ type Message =
 	| { t: "join"; name: string }
 	| { t: "action"; action: UnknownAction }
 	| { t: "sync"; single: State; players: string[]; started: boolean; seat: number }
-	| { t: "reject"; reason: string };
+	| { t: "reject"; reason: string }
+	| { t: "up" } // 방장이 들어왔다
+	| { t: "down" } // 방장이 나갔다
+	| { t: "leave" }; // 참가자가 나갔다
 type Store = {
 	getState(): { single: State; multi: MultiState };
 	dispatch(action: UnknownAction): unknown;
 	subscribe(listener: () => void): unknown;
 };
 
-const APP_ID = "betting-man/frontend";
+const BROKER = "wss://broker.emqx.io:8084/mqtt";
 const HOST_KEY = "bm-host";
 const GUEST_KEY = "bm-guest";
 const MAX_PLAYERS = 8;
 
 let store: Store;
-let room: Room | null = null;
-let channel: MessageAction<JsonValue> | null = null;
+let client: MqttClient | null = null;
+let topic = ""; // betting-man/<방 코드>
+let bye: [path: string, message: Message] | null = null; // 나갈 때 남기는 메시지
 let settings: Settings = { initialScore: 0, initialBet: 0 };
-const guestPeers = new Map<string, string>(); // 방장: 이름 → 참가자 peerId
-let hostPeerId: string | null = null; // 참가자: 방장 peerId
+const guestPeers = new Map<string, string>(); // 방장: 이름 → 참가자 id
 
 const load = <T,>(key: string): T | null => {
 	try {
@@ -46,20 +50,56 @@ const load = <T,>(key: string): T | null => {
 	}
 };
 
-const send = (message: Message, target: string) =>
-	channel?.send(message as unknown as JsonValue, { target }).catch(() => {});
+// 토픽: host(참가자 → 방장), guest/<id>(방장 → 참가자), up(방장의 입장·퇴장 알림)
+const publish = (path: string, message: Message & { from?: string }) =>
+	client?.publish(`${topic}/${path}`, JSON.stringify(message), { qos: 1 });
 
-// 방 코드로 P2P 방에 들어간다. 이전 방은 떠난다.
-function openRoom(code: string) {
-	room?.leave();
+const send = (message: Message, target: string) => publish(`guest/${target}`, message);
+const sendToHost = (message: Message) => publish("host", { ...message, from: me });
+
+function closeRoom() {
+	if (bye) publish(...bye);
+	client?.end();
+	client = null;
+	bye = null;
 	guestPeers.clear();
-	hostPeerId = null;
-	// identity "none": 같은 브라우저의 탭도 서로 다른 사람으로 본다
-	const current = openP2PRoom({ appId: APP_ID, identity: "none" }, code);
-	room = current;
-	channel = current.makeAction<JsonValue>("msg");
-	current.onError((error) => console.warn("[room]", error));
-	return current;
+}
+
+// 방 코드의 토픽을 구독한다. 이전 방은 떠난다. 연결이 끊기면 mqtt 가 알아서 다시 붙는다.
+function openRoom(
+	code: string,
+	listen: string[],
+	last: [path: string, message: Message & { from?: string }],
+	onConnect: () => void,
+	onMessage: (message: Message & { from?: string }) => void
+) {
+	closeRoom();
+	topic = `betting-man/${code}`;
+	bye = last;
+	// will: 탭을 닫거나 새로고침해서 인사 없이 끊기면 브로커가 대신 보낸다
+	const current = mqtt.connect(BROKER, {
+		will: { topic: `${topic}/${last[0]}`, payload: JSON.stringify(last[1]), qos: 1, retain: false },
+	});
+	client = current;
+	current.on("connect", () =>
+		current.subscribe(
+			listen.map((path) => `${topic}/${path}`),
+			{ qos: 1 },
+			onConnect
+		)
+	);
+	current.on(
+		"close",
+		() => client === current && store.dispatch(setMulti({ status: "connecting" }))
+	);
+	current.on("error", (error) => console.warn("[room]", error));
+	current.on("message", (_topic, payload) => {
+		try {
+			onMessage(JSON.parse(payload.toString()));
+		} catch {
+			// 남이 보낸 깨진 메시지는 버린다
+		}
+	});
 }
 
 // 헷갈리는 글자(0/O, 1/I)를 뺀 6자리 방 코드
@@ -68,6 +108,8 @@ const randomCode = () =>
 		crypto.getRandomValues(new Uint8Array(6)),
 		(n) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[n % 32]
 	).join("");
+
+const me = randomCode() + randomCode(); // 이 탭의 id
 
 // 방장: 상태가 바뀔 때마다 모든 참가자에게 보내고 localStorage 에 저장한다
 function broadcast() {
@@ -131,21 +173,30 @@ function onGuestMessage(peerId: string, message: Message) {
 	}
 }
 
+function onGuestLeave(id: string) {
+	const name = [...guestPeers].find(([, peerId]) => peerId === id)?.[0];
+	if (!name) return;
+	guestPeers.delete(name);
+	// 시작 전에 나가면 자리를 비운다
+	const now = store.getState().multi;
+	if (now.role === "host" && !now.started)
+		store.dispatch(setMulti({ players: now.players.filter((p) => p !== name) }));
+}
+
 function openHostRoom(code: string) {
-	const current = openRoom(code);
-	channel?.onMessage((data, { peerId }) => onGuestMessage(peerId, data as unknown as Message));
-	current.onPeerLeave(({ peerId }) => {
-		const name = [...guestPeers].find(([, id]) => id === peerId)?.[0];
-		if (!name) return;
-		guestPeers.delete(name);
-		// 시작 전에 나가면 자리를 비운다
-		const now = store.getState().multi;
-		if (now.role === "host" && !now.started)
-			store.dispatch(setMulti({ players: now.players.filter((p) => p !== name) }));
-	});
-	current.ready.then(
-		() => room === current && store.dispatch(setMulti({ status: "connected", error: null })),
-		(error) => console.warn("[room] host", error)
+	openRoom(
+		code,
+		["host"],
+		["up", { t: "down" }],
+		() => {
+			store.dispatch(setMulti({ status: "connected", error: null }));
+			publish("up", { t: "up" }); // 먼저 와 있던 참가자가 다시 참가를 알리게 한다
+		},
+		(message) => {
+			if (!message.from) return;
+			if (message.t === "leave") onGuestLeave(message.from);
+			else onGuestMessage(message.from, message);
+		}
 	);
 }
 
@@ -178,21 +229,11 @@ export function startRoom() {
 }
 
 function openGuestRoom(code: string, name: string) {
-	const current = openRoom(code);
-	// 누가 방장인지 모르므로 들어오는 모든 상대에게 참가를 알린다. 방장만 답한다.
-	current.onPeerJoin(({ peerId }) => send({ t: "join", name }, peerId));
-	current.onPeerLeave(({ peerId }) => {
-		if (peerId !== hostPeerId) return;
-		// 방장이 새로고침하면 새 peerId 로 다시 들어온다
-		hostPeerId = null;
-		store.dispatch(setMulti({ status: "connecting" }));
-	});
-	channel?.onMessage((data, { peerId }) => {
-		const message = data as unknown as Message;
-		// 처음 답한 상대를 방장으로 보고, 다른 상대가 보낸 상태는 받지 않는다
-		if (hostPeerId && hostPeerId !== peerId) return;
-		if (message.t === "sync") {
-			hostPeerId = peerId;
+	const join = () => sendToHost({ t: "join", name });
+	openRoom(code, [`guest/${me}`, "up"], ["host", { t: "leave", from: me }], join, (message) => {
+		if (message.t === "up") join();
+		else if (message.t === "down") store.dispatch(setMulti({ status: "connecting" }));
+		else if (message.t === "sync") {
 			store.dispatch(replaceState(message.single));
 			store.dispatch(
 				setMulti({
@@ -205,8 +246,8 @@ function openGuestRoom(code: string, name: string) {
 			);
 		} else if (message.t === "reject") {
 			localStorage.removeItem(GUEST_KEY);
+			closeRoom();
 			store.dispatch(setMulti({ status: "error", error: message.reason }));
-			current.leave();
 		}
 	});
 }
@@ -248,11 +289,7 @@ export function restoreRoom(code?: string) {
 
 // 방에서 나간다. 저장된 방 정보도 지운다.
 export function leaveRoom() {
-	room?.leave();
-	room = null;
-	channel = null;
-	hostPeerId = null;
-	guestPeers.clear();
+	closeRoom();
 	localStorage.removeItem(HOST_KEY);
 	localStorage.removeItem(GUEST_KEY);
 	if (store.getState().multi.role !== "local") store.dispatch(resetMulti());
@@ -263,7 +300,7 @@ export const guestMiddleware: Middleware = (api) => (next) => (action) => {
 	const { type } = action as UnknownAction;
 	const isGuest = (api.getState() as { multi: MultiState }).multi.role === "guest";
 	if (isGuest && type.startsWith("single/") && type !== replaceState.type) {
-		if (hostPeerId) send({ t: "action", action } as Message, hostPeerId);
+		sendToHost({ t: "action", action } as Message);
 		return;
 	}
 	return next(action);
