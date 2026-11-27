@@ -1,98 +1,42 @@
-import { Button } from "antd";
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "@/components/ui/button";
+import { RootState } from "../../app/store";
+import { BET_AMOUNTS, CHIP_COLORS } from "../../features/single/chips";
 import { dieUser, incrementUserCurrentRoundBehavior,resetUserCurrentRoundBehavior,betScore,CheckOrCall, AllIn } from "../../features/single/singleSlice";
+
+// 모바일 터치 영역 44px 이상
+const buttonCss = "h-11 min-w-0 grow px-2 tall:h-12 tall:text-lg active:scale-95";
 
 export default function BetBoard() {
   const dispatch = useDispatch();
-
-  // 100, 500, 1000 클릭했을 때
-  const handleNumberClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const value = e.currentTarget.textContent;
-    dispatch(incrementUserCurrentRoundBehavior(Number(value)));
-
-  };
-
-  // Bet 클릭했을 때
-  const handleBetClick = () => {
-    dispatch(betScore());
-  }
-
-  // Cancel 클릭했을 때
-  const handleCancelClick = () => {
-    dispatch(resetUserCurrentRoundBehavior());
-  }
-
-  // Check/Call 클릭했을 때
-  const handleCallClick = () => {
-    dispatch(CheckOrCall());
-  }
-
-  // Check/Call 클릭했을 때
-  const handleAllInClick = () => {
-    dispatch(AllIn());
-  }
-
-  // Die 클릭했을 때
-  const handleDieClick = () => {
-    dispatch(dieUser());
-  }
-
-  const CheckAndCallButton = () => (
-    <Button
-      style={{
-        backgroundColor: "#000001",
-        boxShadow: "none", 
-      }}
-      type="primary"
-      onClick={handleCallClick}
-      className="flex-grow-2 tall:h-12 tall:text-lg"
-    >
-      CHECK / CALL
-    </Button>
+  // 참가자는 자기 턴에만 누를 수 있다. 방장은 자리를 비운 사람 대신 누를 수 있게 막지 않는다.
+  const disabled = useSelector((state: RootState) =>
+    state.multi.role === "guest" && state.multi.seat !== state.single.userTurnOrder[0]
   );
-
-  const AllInButton = () => (
-    <Button
-      style={{
-        backgroundColor: "#eab308",
-        boxShadow: "none",
-      }}
-      type="primary" onClick={handleAllInClick}
-      className={buttonCss}
-    >
-      All-IN
-    </Button>
-  );
-
-  const DieButton = () => (
-    <Button
-      style={{
-        backgroundColor: "#ef4444",
-        boxShadow: "none", 
-      }}
-      type="primary" onClick={handleDieClick}
-      className={buttonCss}
-    >
-      DIE
-    </Button>
-  );
-
-  const buttonCss="flex-grow-1 tall:h-12 tall:text-lg"
 
   return (
-    <div id="bet_board" className='bg-secondary px-3 py-6 absolute bottom-0 w-[600px] max-w-full '>
-      <div className='flex justify-between gap-3 '>
-        <Button className={buttonCss} type="primary" onClick={handleNumberClick}>100</Button>
-        <Button className={buttonCss} type="primary" onClick={handleNumberClick}>500</Button>
-        <Button className={buttonCss} type="primary" onClick={handleNumberClick}>1000</Button>
-        <Button className={buttonCss} type="primary" onClick={handleBetClick}>BET</Button>
-        <Button className={buttonCss} type="primary" onClick={handleCancelClick}>CANCEL</Button>
+    <div id="bet_board" className='bg-card px-3 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]'>
+      <div className='flex items-center justify-between gap-2 '>
+        {/* 칩 버튼 - 3D 칩과 같은 색 */}
+        {BET_AMOUNTS.map((amount) => (
+          <button
+            key={amount}
+            disabled={disabled}
+            onClick={() => dispatch(incrementUserCurrentRoundBehavior(amount))}
+            style={{ backgroundColor: CHIP_COLORS[amount] }}
+            className="size-12 shrink-0 cursor-pointer rounded-full border-4 border-dashed border-white/80 text-sm font-bold text-white shadow-md transition-transform active:scale-90 disabled:pointer-events-none disabled:opacity-50 tall:size-14"
+          >
+            {amount}
+          </button>
+        ))}
+        <Button className={buttonCss} disabled={disabled} onClick={() => dispatch(betScore())}>BET</Button>
+        <Button className={buttonCss} disabled={disabled} variant="outline" onClick={() => dispatch(resetUserCurrentRoundBehavior())}>CANCEL</Button>
       </div>
-      <div className='flex justify-around gap-4 mt-6'>
-        <CheckAndCallButton />
-        <AllInButton/>
-        <DieButton/>
+      <div className='flex justify-around gap-4 mt-4'>
+        <Button className={`${buttonCss} grow-2 bg-black text-white hover:bg-black/80`} disabled={disabled} onClick={() => dispatch(CheckOrCall())}>CHECK / CALL</Button>
+        <Button className={`${buttonCss} bg-yellow-500 text-black hover:bg-yellow-500/90`} disabled={disabled} onClick={() => dispatch(AllIn())}>All-IN</Button>
+        <Button className={buttonCss} disabled={disabled} variant="destructive" onClick={() => dispatch(dieUser())}>DIE</Button>
       </div>
     </div>
   )

@@ -1,57 +1,49 @@
-import {
-    faUser
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { User as UserIcon } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import React from 'react';
 import { User } from '../../features/single/singleSlice';
+import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 
 type Props = {
     isLeft: boolean,
+    isMe: boolean,
     user: User
 }
 
-export default function UserCard({ isLeft, user }: Props) {
+const behaviorColor = (behavior: User['currentRoundBehavior']) => {
+    if (typeof behavior === 'number') return 'text-blue-300';
+    if (behavior === 'DIE') return 'text-red-500';
+    if (behavior === 'ALL-IN') return 'text-yellow-400';
+    return 'text-black';
+}
+
+export default function UserCard({ isLeft, isMe, user }: Props) {
     return (
-        <div className={`w-full flex items-center p-2 ${user.isTurn ? 'bg-third rounded-md' : ''}`}>
-            {!isLeft && (
-                <div className={`flex flex-col flex-grow-3 w-full items-center ${isLeft ? '' : 'ml-auto '} `}>
-                    <p className='text-white font-bold'>{user.currentRoundBet}</p>
-                    {user.currentRoundBehavior !== 0 && (
-                        <p className={`font-bold text-2xl ${typeof user.currentRoundBehavior === 'string'
-                                ? user.currentRoundBehavior === 'DIE'
-                                    ? 'text-red-800'
-                                    : user.currentRoundBehavior === 'ALL-IN'
-                                        ? 'text-yellow-400' // ALL-IN이면 노란색
-                                        : 'text-black'
-                                : 'text-blue-500'
-                            }`}>
-                            {user.currentRoundBehavior}
-                        </p>
-                    )}
-                </div>
-            )}
-            <div className={`flex flex-col flex-grow-1 w-full ${isLeft ? 'items-start' : ' items-end'}`}>
-                <FontAwesomeIcon icon={faUser} size='2xl' />
-                <p className='text-white '>{user.name}</p>
-                <p className='text-white font-medium'>{user.currentScore}</p>
+        <div className={`relative flex w-full items-center p-2 ${isLeft ? '' : 'flex-row-reverse'} ${user.isDie ? 'opacity-60' : ''}`}>
+            {/* 턴 강조 배경 - 턴이 바뀌면 다음 유저 카드로 미끄러진다 */}
+            {user.isTurn && <motion.div layoutId="turn" className="absolute inset-0 rounded-md bg-accent" />}
+            <div className={`relative flex w-full grow flex-col ${isLeft ? 'items-start' : 'items-end'}`}>
+                <UserIcon className={`size-8 ${isMe ? 'text-primary' : ''}`} />
+                <p>{user.name}</p>
+                <p className='font-medium'><AnimatedNumber value={user.currentScore} /></p>
             </div>
-            {isLeft && (
-                <div className='flex flex-col flex-grow-3 w-full items-center'>
-                    <p className='text-white font-bold'>{user.currentRoundBet}</p>
+            <div className='relative flex w-full grow-3 flex-col items-center'>
+                <p className='font-bold'><AnimatedNumber value={user.currentRoundBet} /></p>
+                <AnimatePresence mode="popLayout">
                     {user.currentRoundBehavior !== 0 && (
-                        <p className={`font-bold text-2xl ${typeof user.currentRoundBehavior === 'string'
-                                ? user.currentRoundBehavior === 'DIE'
-                                    ? 'text-red-800'
-                                    : user.currentRoundBehavior === 'ALL-IN'
-                                        ? 'text-yellow-400' // ALL-IN이면 노란색
-                                        : 'text-black'
-                                : 'text-blue-500'
-                            }`}>
+                        <motion.p
+                            key={user.currentRoundBehavior}
+                            initial={{ scale: 0.4, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.4, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                            className={`text-2xl font-bold ${behaviorColor(user.currentRoundBehavior)}`}
+                        >
                             {user.currentRoundBehavior}
-                        </p>
+                        </motion.p>
                     )}
-                </div>
-            )}
+                </AnimatePresence>
+            </div>
         </div>
     )
 }

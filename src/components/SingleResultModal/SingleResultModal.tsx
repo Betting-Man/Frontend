@@ -1,8 +1,8 @@
-import { Modal } from "antd";
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from "../../app/store";
+import GameDialog from "../GameDialog/GameDialog";
 
 type Props = {
     isModalOpen: boolean,
@@ -13,6 +13,7 @@ export default function SingleResultModal({ isModalOpen, setIsModalOpen, }: Prop
     const navigate = useNavigate();
 
     const users = useSelector((state: RootState) => state.single.users);
+    const isLocal = useSelector((state: RootState) => state.multi.role === 'local');
 
     const handleExitClick = () => {
         // 복사할 텍스트 생성
@@ -28,16 +29,16 @@ export default function SingleResultModal({ isModalOpen, setIsModalOpen, }: Prop
             console.error('복사 실패: ', err);
         });
 
-        // '/single' 페이지로 이동
-        navigate('/single');
+        // 한 기기 모드는 설정 화면으로, 멀티플레이는 홈으로 나간다 (홈에서 방을 떠난다)
+        navigate(isLocal ? '/single' : '/');
     }
 
     return (
-        <Modal title="Game Result" width="500px" okText="Exit" onOk={handleExitClick} open={isModalOpen} cancelText='Cancel' onCancel={() => setIsModalOpen(false)}>
+        <GameDialog title="Game Result" okText="Exit" onOk={handleExitClick} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
             <div className="flex flex-col gap-4">
                 {users.map((user) => {
                     const scoreDifference = user.currentScore - user.initialScore;
-                    const scoreClass = scoreDifference > 0 ? 'text-red-500' : 'text-blue-500';
+                    const scoreClass = scoreDifference > 0 ? 'text-red-400' : 'text-blue-300';
 
                     return (
                         <p key={user.name} className={scoreClass}>
@@ -46,6 +47,6 @@ export default function SingleResultModal({ isModalOpen, setIsModalOpen, }: Prop
                     );
                 })}
             </div>
-        </Modal>
+        </GameDialog>
     )
 }

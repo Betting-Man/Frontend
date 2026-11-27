@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import { Modal } from "antd";
+import { User as UserIcon } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from "../../app/store";
-import {
-    faUser
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { incrementUserScore } from '../../features/single/singleSlice';
+import GameDialog from "../GameDialog/GameDialog";
 
 type Props = {
     isModalOpen: boolean,
@@ -28,10 +25,6 @@ export default function SingleChargeModal({ isModalOpen, setIsModalOpen }: Props
         }
     };
 
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    }
-
     const handleClick = (index: number) => {
         if (selectedUserIndexes.includes(index)) {
             // 이미 선택된 인덱스라면 배열에서 제거
@@ -43,24 +36,26 @@ export default function SingleChargeModal({ isModalOpen, setIsModalOpen }: Props
     };
 
     return (
-        <Modal title="Recharge Score" width="500px" okText="Recharge" onOk={handleOk} open={isModalOpen} cancelText='Cancel' onCancel={handleCancel}>
+        <GameDialog title="Recharge Score" okText="Recharge" onOk={handleOk} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
             <p className='my-3 flex justify-center text-xl'>Charge Amount : {initialScore}</p>
             <div className="grid grid-cols-2 gap-4">
                 {users.map((user, index) => (
-                    <div
+                    <button
                         key={index}
-                        className={`flex items-center p-4 border cursor-pointer ${selectedUserIndexes.includes(index) ? 'bg-blue-200' : 'bg-white'
-                            }`}
+                        aria-pressed={selectedUserIndexes.includes(index)}
+                        className={`flex cursor-pointer items-center rounded-md border p-4 transition-colors ${
+                            selectedUserIndexes.includes(index) ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                        }`}
                         onClick={() => handleClick(index)}
                     >
-                        <FontAwesomeIcon icon={faUser} size="2xl" className="mr-2" />
+                        <UserIcon className="mr-2 size-8" />
                         <div className='flex flex-col items-center'>
                             <p>{user.name}</p>
                             <p>{user.currentScore}</p>
                         </div>
-                    </div>
+                    </button>
                 ))}
             </div>
-        </Modal>
+        </GameDialog>
     )
 }
