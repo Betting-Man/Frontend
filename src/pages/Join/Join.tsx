@@ -44,7 +44,9 @@ export default function Join() {
                         <Input className="h-11 w-40 bg-card" value={name} maxLength={8} onChange={(e) => setName(e.target.value)} />
                     </div>
                     {multi.error && <p role="alert" className="text-destructive">{multi.error}</p>}
-                    <Button size="lg" className="h-11" disabled={code.length !== 6 || !name.trim()} onClick={() => joinRoom(code, name)}>Join</Button>
+                    {/* 멀티플레이는 localhost 가 아니면 HTTPS 에서만 동작한다 */}
+                    {!window.isSecureContext && <p role="alert" className="text-center text-destructive">HTTPS 주소로 열어야 방에 연결할 수 있어요.</p>}
+                    <Button size="lg" className="h-11" disabled={code.length !== 6 || !name.trim() || !window.isSecureContext} onClick={() => joinRoom(code, name)}>Join</Button>
                 </>
             )}
         </motion.div>

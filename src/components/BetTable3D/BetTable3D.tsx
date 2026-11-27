@@ -146,7 +146,11 @@ function Chips() {
 			const staying = new Map(
 				current.filter((chip) => !chip.leavingUntil).map((chip) => [chip.key, chip])
 			);
-			const next = current.filter((chip) => chip.leavingUntil && chip.leavingUntil > now);
+			// 빠져나가던 칩과 같은 칩이 다시 필요해지면 빠져나가던 쪽을 지운다 (key 중복 방지)
+			const wantedKeys = new Set(wanted.map((want) => want.key));
+			const next = current.filter(
+				(chip) => chip.leavingUntil && chip.leavingUntil > now && !wantedKeys.has(chip.key)
+			);
 			let entering = 0;
 			wanted.forEach((want) => {
 				const chip = staying.get(want.key);

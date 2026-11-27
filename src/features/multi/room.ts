@@ -1,10 +1,11 @@
 import type { Middleware, UnknownAction } from "@reduxjs/toolkit";
-import Peer, { type DataConnection } from "peerjs";
+import { type JsonValue, type MessageAction, type Room, joinRoom as openP2PRoom } from "trystero";
 import { type State, replaceState, startGame } from "../single/singleSlice";
 import { isAllowed } from "./isAllowed";
 import { type MultiState, resetMulti, setMulti } from "./multiSlice";
 
-// 방장 브라우저가 서버 역할을 한다. 참가자는 PeerJS(WebRTC)로 방장에 직접 붙는다.
+// 방장 브라우저가 서버 역할을 한다. 참가자는 Trystero(WebRTC)로 방장에 직접 붙는다.
+// 서로를 찾는 중계는 Trystero 가 여러 공개 릴레이에 나눠 맡긴다. 게임 데이터는 릴레이를 지나지 않는다.
 
 type Settings = { initialScore: number; initialBet: number };
 type HostSave = Settings & {
@@ -25,26 +26,17 @@ type Store = {
 	subscribe(listener: () => void): unknown;
 };
 
-const PEER_PREFIX = "bettingman-";
+const APP_ID = "betting-man/frontend";
 const HOST_KEY = "bm-host";
 const GUEST_KEY = "bm-guest";
 const MAX_PLAYERS = 8;
-const RETRY_MS = 3000;
-const MAX_RETRY_MS = 30000;
 
 let store: Store;
-let peer: Peer | null = null;
-let retryTimer: ReturnType<typeof setTimeout> | undefined;
-let retryCount = 0;
+let room: Room | null = null;
+let channel: MessageAction<JsonValue> | null = null;
 let settings: Settings = { initialScore: 0, initialBet: 0 };
-const guestConns = new Map<string, DataConnection>(); // 방장: 이름 → 연결
-let hostConn: DataConnection | null = null; // 참가자: 방장과의 연결
-
-// 다시 연결을 한 번만 예약한다. 중계 서버가 요청 수를 제한하므로 간격을 3초부터 30초까지 두 배씩 늘린다.
-function retryLater(run: () => void) {
-	clearTimeout(retryTimer);
-	retryTimer = setTimeout(run, Math.min(RETRY_MS * 2 ** retryCount++, MAX_RETRY_MS));
-}
+const guestPeers = new Map<string, string>(); // 방장: 이름 → 참가자 peerId
+let hostPeerId: string | null = null; // 참가자: 방장 peerId
 
 const load = <T,>(key: string): T | null => {
 	try {
@@ -53,6 +45,22 @@ const load = <T,>(key: string): T | null => {
 		return null;
 	}
 };
+
+const send = (message: Message, target: string) =>
+	channel?.send(message as unknown as JsonValue, { target }).catch(() => {});
+
+// 방 코드로 P2P 방에 들어간다. 이전 방은 떠난다.
+function openRoom(code: string) {
+	room?.leave();
+	guestPeers.clear();
+	hostPeerId = null;
+	// identity "none": 같은 브라우저의 탭도 서로 다른 사람으로 본다
+	const current = openP2PRoom({ appId: APP_ID, identity: "none" }, code);
+	room = current;
+	channel = current.makeAction<JsonValue>("msg");
+	current.onError((error) => console.warn("[room]", error));
+	return current;
+}
 
 // 헷갈리는 글자(0/O, 1/I)를 뺀 6자리 방 코드
 const randomCode = () =>
@@ -65,17 +73,18 @@ const randomCode = () =>
 function broadcast() {
 	const { single, multi } = store.getState();
 	if (multi.role !== "host" || !multi.code) return;
-	guestConns.forEach((conn, name) => {
-		if (!conn.open) return;
-		const message: Message = {
-			t: "sync",
-			single,
-			players: multi.players,
-			started: multi.started,
-			seat: multi.players.indexOf(name),
-		};
-		conn.send(message);
-	});
+	guestPeers.forEach((peerId, name) =>
+		send(
+			{
+				t: "sync",
+				single,
+				players: multi.players,
+				started: multi.started,
+				seat: multi.players.indexOf(name),
+			},
+			peerId
+		)
+	);
 	const save: HostSave = {
 		...settings,
 		code: multi.code,
@@ -98,12 +107,9 @@ export function bindStore(target: Store) {
 	});
 }
 
-function onGuestMessage(conn: DataConnection, message: Message) {
+function onGuestMessage(peerId: string, message: Message) {
 	const { single, multi } = store.getState();
-	const reject = (reason: string) => {
-		conn.send({ t: "reject", reason } satisfies Message);
-		setTimeout(() => conn.close(), 500);
-	};
+	const reject = (reason: string) => send({ t: "reject", reason }, peerId);
 
 	if (message.t === "join") {
 		const name = String(message.name ?? "").trim().slice(0, 8);
@@ -115,49 +121,32 @@ function onGuestMessage(conn: DataConnection, message: Message) {
 			if (multi.started) return reject("이미 시작한 게임이에요.");
 			if (multi.players.length >= MAX_PLAYERS) return reject("방이 가득 찼어요.");
 		}
-		guestConns.get(name)?.close();
-		guestConns.set(name, conn);
-		conn.on("close", () => {
-			if (guestConns.get(name) !== conn) return;
-			guestConns.delete(name);
-			// 시작 전에 나가면 자리를 비운다
-			const now = store.getState().multi;
-			if (now.role === "host" && !now.started)
-				store.dispatch(setMulti({ players: now.players.filter((p) => p !== name) }));
-		});
+		guestPeers.set(name, peerId);
 		if (seat === -1) store.dispatch(setMulti({ players: [...multi.players, name] }));
 		else broadcast();
 	} else if (message.t === "action") {
-		const name = [...guestConns].find(([, c]) => c === conn)?.[0];
+		const name = [...guestPeers].find(([, id]) => id === peerId)?.[0];
 		const seat = name ? multi.players.indexOf(name) : -1;
 		if (isAllowed(single, seat, message.action)) store.dispatch(message.action);
 	}
 }
 
-function openHostPeer(code: string) {
-	peer?.destroy();
-	const current = new Peer(PEER_PREFIX + code);
-	peer = current;
-	current.on("open", () => {
-		retryCount = 0;
-		store.dispatch(setMulti({ status: "connected", error: null }));
+function openHostRoom(code: string) {
+	const current = openRoom(code);
+	channel?.onMessage((data, { peerId }) => onGuestMessage(peerId, data as unknown as Message));
+	current.onPeerLeave(({ peerId }) => {
+		const name = [...guestPeers].find(([, id]) => id === peerId)?.[0];
+		if (!name) return;
+		guestPeers.delete(name);
+		// 시작 전에 나가면 자리를 비운다
+		const now = store.getState().multi;
+		if (now.role === "host" && !now.started)
+			store.dispatch(setMulti({ players: now.players.filter((p) => p !== name) }));
 	});
-	current.on("connection", (conn) =>
-		conn.on("data", (data) => onGuestMessage(conn, data as Message))
+	current.ready.then(
+		() => room === current && store.dispatch(setMulti({ status: "connected", error: null })),
+		(error) => console.warn("[room] host", error)
 	);
-	// 중계 서버와 끊겨도 이미 붙은 참가자 연결은 살아 있다. 같은 ID 로 다시 등록만 한다.
-	current.on("disconnected", () => {
-		if (peer !== current || current.destroyed) return;
-		store.dispatch(setMulti({ status: "connecting" }));
-		retryLater(() => peer === current && !current.destroyed && current.reconnect());
-	});
-	current.on("error", (error) => {
-		console.warn("[room] host", error.type, error.message);
-		// 새로고침 직후에는 중계 서버가 이전 ID 를 아직 쥐고 있을 수 있어 새로 연다
-		if (error.type !== "unavailable-id") return;
-		store.dispatch(setMulti({ status: "connecting" }));
-		retryLater(() => peer === current && openHostPeer(code));
-	});
 }
 
 // 방 만들기. restore 를 주면 저장된 방을 같은 코드로 다시 연다.
@@ -177,7 +166,7 @@ export function hostRoom(name: string, next: Settings, restore?: HostSave) {
 			error: null,
 		})
 	);
-	openHostPeer(code);
+	openHostRoom(code);
 	return code;
 }
 
@@ -188,45 +177,37 @@ export function startRoom() {
 	store.dispatch(setMulti({ started: true }));
 }
 
-function connectGuest(code: string, name: string) {
-	peer?.destroy();
-	const current = new Peer();
-	peer = current;
-	const retry = () => {
-		// 방장과의 연결이 살아 있으면 중계 서버 오류는 무시한다
-		if (peer !== current || hostConn?.open) return;
-		if (store.getState().multi.status === "error") return;
+function openGuestRoom(code: string, name: string) {
+	const current = openRoom(code);
+	// 누가 방장인지 모르므로 들어오는 모든 상대에게 참가를 알린다. 방장만 답한다.
+	current.onPeerJoin(({ peerId }) => send({ t: "join", name }, peerId));
+	current.onPeerLeave(({ peerId }) => {
+		if (peerId !== hostPeerId) return;
+		// 방장이 새로고침하면 새 peerId 로 다시 들어온다
+		hostPeerId = null;
 		store.dispatch(setMulti({ status: "connecting" }));
-		retryLater(() => peer === current && connectGuest(code, name));
-	};
-	current.on("open", () => {
-		const conn = current.connect(PEER_PREFIX + code, { reliable: true });
-		hostConn = conn;
-		conn.on("open", () => conn.send({ t: "join", name } satisfies Message));
-		conn.on("data", (data) => {
-			const message = data as Message;
-			if (message.t === "sync") {
-				retryCount = 0;
-				store.dispatch(replaceState(message.single));
-				store.dispatch(
-					setMulti({
-						players: message.players,
-						started: message.started,
-						seat: message.seat,
-						status: "connected",
-						error: null,
-					})
-				);
-			} else if (message.t === "reject") {
-				localStorage.removeItem(GUEST_KEY);
-				store.dispatch(setMulti({ status: "error", error: message.reason }));
-			}
-		});
-		conn.on("close", retry);
 	});
-	current.on("error", (error) => {
-		console.warn("[room] guest", error.type, error.message);
-		retry();
+	channel?.onMessage((data, { peerId }) => {
+		const message = data as unknown as Message;
+		// 처음 답한 상대를 방장으로 보고, 다른 상대가 보낸 상태는 받지 않는다
+		if (hostPeerId && hostPeerId !== peerId) return;
+		if (message.t === "sync") {
+			hostPeerId = peerId;
+			store.dispatch(replaceState(message.single));
+			store.dispatch(
+				setMulti({
+					players: message.players,
+					started: message.started,
+					seat: message.seat,
+					status: "connected",
+					error: null,
+				})
+			);
+		} else if (message.t === "reject") {
+			localStorage.removeItem(GUEST_KEY);
+			store.dispatch(setMulti({ status: "error", error: message.reason }));
+			current.leave();
+		}
 	});
 }
 
@@ -246,7 +227,7 @@ export function joinRoom(code: string, name: string) {
 			error: null,
 		})
 	);
-	connectGuest(save.code, save.name);
+	openGuestRoom(save.code, save.name);
 }
 
 // 새로고침 뒤 저장된 방으로 돌아간다. code 를 주면 그 방일 때만 돌아간다.
@@ -267,12 +248,11 @@ export function restoreRoom(code?: string) {
 
 // 방에서 나간다. 저장된 방 정보도 지운다.
 export function leaveRoom() {
-	clearTimeout(retryTimer);
-	retryCount = 0;
-	peer?.destroy();
-	peer = null;
-	hostConn = null;
-	guestConns.clear();
+	room?.leave();
+	room = null;
+	channel = null;
+	hostPeerId = null;
+	guestPeers.clear();
 	localStorage.removeItem(HOST_KEY);
 	localStorage.removeItem(GUEST_KEY);
 	if (store.getState().multi.role !== "local") store.dispatch(resetMulti());
@@ -283,7 +263,7 @@ export const guestMiddleware: Middleware = (api) => (next) => (action) => {
 	const { type } = action as UnknownAction;
 	const isGuest = (api.getState() as { multi: MultiState }).multi.role === "guest";
 	if (isGuest && type.startsWith("single/") && type !== replaceState.type) {
-		if (hostConn?.open) hostConn.send({ t: "action", action } as Message);
+		if (hostPeerId) send({ t: "action", action } as Message, hostPeerId);
 		return;
 	}
 	return next(action);
