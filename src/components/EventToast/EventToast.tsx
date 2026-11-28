@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
+import { toChips } from "../../features/single/chips";
 import { describeEvents } from "../../features/single/events";
+import { chipSound } from "../../lib/sound";
 
 const SHOW_MS = 2500;
 
@@ -15,6 +17,10 @@ export default function EventToast() {
 
     useEffect(() => {
         const events = describeEvents(previous.current, single);
+        // 판돈이 늘면 건 칩 수만큼, 승자가 가져가면 길게 칩 소리를 낸다
+        const moved = single.currentRoundTotalScore - previous.current.currentRoundTotalScore;
+        if (moved > 0) chipSound(toChips(moved).length);
+        else if (moved < 0) chipSound(8);
         previous.current = single;
         if (events.length === 0) return;
         const added = events.map((text) => ({ id: nextId.current++, text }));

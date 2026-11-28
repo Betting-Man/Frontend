@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { RootState } from "../../app/store";
+import { chipSound } from "../../lib/sound";
 import EventToast from "../EventToast/EventToast";
 import { betProblem } from "../../features/single/betProblem";
 import { BET_AMOUNTS, CHIP_COLORS } from "../../features/single/chips";
@@ -28,6 +29,7 @@ export default function BetBoard() {
   // 버튼을 누르면 실행하고, 그대로 되지 않는 이유가 있으면 알려 준다
   const press = (kind: "chip" | "bet" | "other", action: Parameters<typeof dispatch>[0], amount?: number) => {
     setNotice(betProblem(store.getState().single, kind, amount));
+    if (kind === "chip") chipSound(); // 칩을 고르는 소리
     dispatch(action);
   };
   // 멀티플레이에서는 방장도 참가자도 자기 턴에만 누를 수 있다
