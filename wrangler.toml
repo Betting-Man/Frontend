@@ -1,0 +1,22 @@
+# Worker 하나가 화면(dist)과 방 서버(server/room.js)를 함께 내보낸다. `npx wrangler deploy` 로 배포한다.
+name = "betting-man-room"
+account_id = "43914cc8350e5956264843074be7c2a7"
+main = "server/room.js"
+compatibility_date = "2026-11-01"
+
+[build]
+command = "npm run build"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+run_worker_first = ["/room/*"]
+
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "Room"
+
+# 무료 요금제는 SQLite 저장소를 쓰는 Durable Object 만 받는다
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]

@@ -1,11 +1,10 @@
-import { Modal} from "antd";
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import UserNameInput from "../UserNameInput/UserNameInput";
 import { useSelector, useDispatch } from 'react-redux';
-import { setUsers, setInitialBet, setUserTurnOrder, setInitialRoundSetting, checkNameRedundancy, setInitialScore } from "../../features/single/singleSlice";
+import { checkNameRedundancy, startGame } from "../../features/single/singleSlice";
 import { RootState } from "../../app/store";
-import { User } from "../../features/single/singleSlice";
+import GameDialog from "../GameDialog/GameDialog";
 
 type Props = {
     isModalOpen: boolean,
@@ -19,7 +18,6 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    // const { leftArray, rightArray } = useUserposition(userCount);
     const leftUsers: number = Math.ceil(userCount / 2);
     const rightUsers: number = Math.floor(userCount / 2);
     const userNames = useSelector((state: RootState) => state.single.userNames)
@@ -29,33 +27,15 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
     const handleOk = () => {
         dispatch(checkNameRedundancy());
         if (!hasDuplicateName) {
-            dispatch(setInitialBet(initialBet)) // 초기 베팅 금액 상태 업데이트
-            // 유저 객체 배열 생성
-            const userObjects: User[] = [];
-
-            userNames.forEach((name) => {
-                userObjects.push({
-                    name: name,
-                    initialScore: initialScore,
-                    currentScore: initialScore,
-                    isTurn: false,
-                    currentRoundBet: initialBet,
-                    currentRoundBehavior: 0,
-                    isDie: false
-                })
-            })
-
-            dispatch(setUsers(userObjects)) // 유저 객체 업데이트
-            dispatch(setUserTurnOrder()); // 턴 정하기
-            dispatch(setInitialRoundSetting()); // inital Bet을 통해 round 시작전 세팅
-            dispatch(setInitialScore(initialScore));
-            navigate('/single/1'); // 특정 roomId로 수정 필요 ////////////////////////////////////////
+            // 이전 게임에서 남은 이름이 섞이지 않게 인원 수만큼만 쓴다
+            startGame(dispatch, userNames.slice(0, userCount), initialScore, initialBet);
+            navigate('/single/1'); // 한 기기 모드의 고정 roomId
         }
     }
 
     return (
-        <Modal title="Setting For Player Name" width="500px" okText={hasDuplicateName ? 'Duplicate Check' : 'Start'} open={isModalOpen} onOk={handleOk} onCancel={() => setIsModalOpen(false)}>
-            <div className='p-3 flex gap-8'>
+        <GameDialog title="플레이어 이름" okText={hasDuplicateName ? '중복 확인' : '시작'} open={isModalOpen} onOk={handleOk} onClose={() => setIsModalOpen(false)}>
+            <div className='flex gap-4 py-3'>
                 <div className="flex flex-col w-1/2 gap-4">
                     {[...Array(leftUsers)].map((_, index) => (
                         <UserNameInput key={index} user={userNamesExample[index * 2]} index={index * 2} isLeft={true} />
@@ -67,6 +47,6 @@ export default function SingleBeginModal({ isModalOpen, setIsModalOpen, userCoun
                     ))}
                 </div>
             </div>
-        </Modal>
+        </GameDialog>
     )
 }

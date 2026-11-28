@@ -1,11 +1,8 @@
-import {
-    faUser
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Input } from "antd";
+import { User as UserIcon } from 'lucide-react';
 import { useDispatch } from 'react-redux';
+import { Input } from "@/components/ui/input";
 import { setNameRedundancy, updateUserName } from '../../features/single/singleSlice';
-import React,{ ChangeEvent, useState } from 'react';
+import React,{ ChangeEvent, useEffect, useState } from 'react';
 
 type Props = {
     user : string,
@@ -16,22 +13,22 @@ type Props = {
 export default function UserNameInput({user,index,isLeft }: Props) {
     const [userName, setUserName] = useState(user)
     const dispatch = useDispatch();
-    dispatch(updateUserName([index,userName]))
+
+    // 입력한 이름을 스토어에 반영
+    useEffect(() => {
+        dispatch(updateUserName([index,userName]))
+    }, [dispatch, index, userName]);
 
     const handleChange =(e: ChangeEvent<HTMLInputElement>)=>{
         dispatch(setNameRedundancy());
         setUserName(e.target.value)
     }
 
-    const handleBlur = () => {
-        dispatch(updateUserName([index,userName]))
-    };
-
     return (
         <div className="flex items-center gap-4">
-            {isLeft && <FontAwesomeIcon icon={faUser} size='2xl' />}
-            <Input value={userName} onChange={handleChange} onBlur={handleBlur} maxLength={8}/>
-            {!isLeft && <FontAwesomeIcon icon={faUser} size='2xl' />}
+            {isLeft && <UserIcon className="size-8 shrink-0" />}
+            <Input value={userName} onChange={handleChange} maxLength={8}/>
+            {!isLeft && <UserIcon className="size-8 shrink-0" />}
         </div>
     );
 }

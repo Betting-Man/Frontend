@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import { Button } from "antd";
+import { Plus } from "lucide-react";
 import { useSelector} from 'react-redux';
+import { Button } from "@/components/ui/button";
 import { RootState } from '../../app/store';
 import SingleResultModal from "../SingleResultModal/SingleResultModal";
 import SingleSettingModal from "../SingleSettingModal/SingleSettingModal";
 import SingleChargeModal from "../SingleChargeModal/SingleChargeModal";
-import {
-  faPlus
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function Header() {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false); // 유저 베팅 결과 모달창 오픈 여부
@@ -17,31 +14,24 @@ export default function Header() {
 
   // 라운드 상태 변수
   const round = useSelector((state: RootState) => state.single.round);
-  // 라운드 시작 여부 변수
-  const isStartingRound = useSelector((state: RootState) => state.single.isStartingRound);
-
-  // Result 버튼 클릭
-  const handleResultClick = () => {
-    setIsResultModalOpen(true);
-  }
-
-  // Setting 버튼 클릭
-  const handleSettingClick = () => {
-    setIsSettingModalOpen(true);
-  }
-
-  // Money 버튼 클릭
-  const handleMoneyClick = () => {
-    setIsMoneyModalOpen(true);
-  }
+  // 멀티플레이 방 정보
+  const { role, code, status } = useSelector((state: RootState) => state.multi);
 
   return (
-    <div id="header" className="flex justify-between p-3">
-      <Button type="primary" onClick={handleResultClick} >Result</Button>
-      <h1 className="text-lg sm:text-2xl">Round - {round}</h1>
+    <div id="header" className="flex items-center justify-between p-3">
+      <Button onClick={() => setIsResultModalOpen(true)} >결과</Button>
+      <div className="flex flex-col items-center">
+        <h1 className="text-lg sm:text-2xl">{round}라운드</h1>
+        {role !== 'local' && (
+          <p className="text-xs text-muted-foreground">
+            방 {code}{status !== 'connected' && ' · 다시 연결 중…'}
+          </p>
+        )}
+      </div>
       <div className="flex gap-2">
-        <Button type="primary" onClick={handleSettingClick}>Setting</Button>
-        <Button  onClick={handleMoneyClick} disabled={isStartingRound}><FontAwesomeIcon icon={faPlus} /></Button>
+        <Button onClick={() => setIsSettingModalOpen(true)}>설정</Button>
+        {/* 멀티플레이에서는 각자 자기 돈을 충전한다 */}
+        <Button variant="outline" size="icon" aria-label="충전" onClick={() => setIsMoneyModalOpen(true)}><Plus /></Button>
       </div>
 
       {isResultModalOpen && <SingleResultModal isModalOpen={isResultModalOpen} setIsModalOpen={setIsResultModalOpen} />}
